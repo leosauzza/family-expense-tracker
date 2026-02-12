@@ -11,6 +11,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
     networks:
       - expense-tracker-network
     restart: unless-stopped
@@ -32,13 +33,17 @@ services:
       ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
       ASPNETCORE_URLS: http://+:8080
     ports:
-      - "3501:8080"
+      - "${BACKEND_PORT:-3501}:8080"
     depends_on:
       db:
         condition: service_healthy
     networks:
       - expense-tracker-network
     restart: unless-stopped
+    # Run migrations on startup (optional, but recommended for production)
+    # command: >
+    #   sh -c "dotnet ef database update --project src/ExpenseTracker.Infrastructure || true &&
+    #          dotnet ExpenseTracker.Api.dll"
 
   # PDF Parser Service - Internal only (no port exposed)
   # Only accessible by backend via Docker network
@@ -69,7 +74,7 @@ services:
       target: production
     container_name: expense-tracker-frontend
     ports:
-      - "3500:80"
+      - "${FRONTEND_PORT:-3500}:80"
     depends_on:
       - backend
     networks:

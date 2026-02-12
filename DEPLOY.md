@@ -13,7 +13,7 @@ Guía para configurar deploy automático a tu servidor Ubuntu con Portainer.
 
 ## 🎯 Opciones de Deploy
 
-Tienes **dos opciones** para el deploy automático:
+Tienes **tres opciones** para el deploy automático:
 
 | Opción | Descripción | Ideal para |
 |--------|-------------|------------|
@@ -27,230 +27,33 @@ Tienes **dos opciones** para el deploy automático:
 
 Portainer se encarga de todo automáticamente. Cuando haces push a `main`, Portainer detecta el cambio y redeploya.
 
-## Paso 1: Configurar el Stack en Portainer
+## Paso 1: Preparar el Servidor (Ubuntu)
 
-1. Accede a tu Portainer (http://TU_SERVIDOR:9000)
-2. Ve a **Stacks** → **Add Stack**
-3. Configura:
-
-| Campo | Valor |
-|-------|-------|
-| Name | `family-expense-tracker` |
-| Build method | **Repository** |
-| Repository URL | `https://github.com/leosauzza/family-expense-tracker` |
-| Repository reference | `refs/heads/main` |
-| Compose path | `docker-compose.prod.yml` |
-| Automatic updates | ✅ **Enabled** |
-| Fetch interval | `5m` (o el que prefieras) |
-
-4. En **Environment variables**, agrega todas las variables de tu archivo `.env`:
-
-```
-POSTGRES_DB=expensetracker
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=tu_password_segura
-ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=expensetracker;Username=postgres;Password=tu_password_segura
-```
-
-5. Click **Deploy the stack**
-
-## Paso 2: Configurar Acceso al Repo (si es privado)
-
-Si tu repo es privado, necesitas configurar autenticación:
-
-1. Ve a **Settings** → **Authentication** en Portainer
-2. O al crear el stack, expande **Authentication** y agrega:
-   - Username: tu usuario de GitHub
-   - Personal Access Token: [crear uno aquí](https://github.com/settings/tokens) con permiso `repo`
-
-## Paso 3: Verificar Deploy Automático
-
-Haz un cambio en el código y push a `main`:
+Conectate por SSH a tu servidor:
 
 ```bash
-git add .
-git commit -m "Test deploy automático"
-git push origin main
+ssh tu-usuario@IP_DE_TU_SERVIDOR
 ```
 
-En ~5 minutos, Portainer debería detectar el cambio y redeployar automáticamente.
-
----
-
-# Opción B: GitHub Actions + SSH
-
-GitHub Actions se conecta a tu servidor vía SSH y ejecuta los comandos de deploy.
-
-## Paso 1: Generar SSH Key
-
-En tu servidor Ubuntu:
-
-```bash
-# Generar key pair
-ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/github_actions
-
-# Agregar a authorized_keys
-cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
-
-# Ver la private key (la necesitarás en GitHub)
-cat ~/.ssh/github_actions
-```
-
-## Paso 2: Configurar Secrets en GitHub
-
-Ve a tu repo en GitHub → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
-
-| Secret Name | Valor |
-|-------------|-------|
-| `SERVER_IP` | IP de tu servidor (ej: `192.168.1.100`) |
-| `SERVER_USER` | Usuario SSH (ej: `ubuntu`) |
-| `SSH_PRIVATE_KEY` | El contenido completo de `~/.ssh/github_actions` |
-
-## Paso 3: Preparar Directorio en el Servidor
-
-```bash
-# Crear directorio para la app
-sudo mkdir -p /opt/family-expense-tracker
-sudo chown $USER:$USER /opt/family-expense-tracker
-
-# Crear archivo .env
-cd /opt/family-expense-tracker
-cp .env.example .env
-nano .env  # Editar con tus valores
-```
-
-## Paso 4: Probar Deploy
-
-Haz push a `main` o ejecuta manualmente el workflow en GitHub → Actions → "Deploy to Home Server (SSH)"
-
----
-
-# Opción C: GitHub Actions + Portainer Webhook
-
-Build de imágenes en GitHub Actions + trigger webhook a Portainer para redeploy.
-
-## Paso 1: Configurar GitHub Container Registry (GHCR)
-
-Las imágenes se publicarán automáticamente en GHCR. No necesitas configurar nada extra, usa el `GITHUB_TOKEN` automático.
-
-## Paso 2: Crear Stack en Portainer con Webhook
-
-1. En Portainer: **Stacks** → **Add Stack**
-2. Build method: **Web editor**
-3. Pega el contenido de `docker-compose.portainer.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - expense-tracker-network
-    restart: unless-stopped
-
-  backend:
-    image: ghcr.io/leosauzza/expense-tracker-backend:latest
-    environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
-    ports:
-      - "3501:8080"
-    networks:
-      - expense-tracker-network
-    restart: unless-stopped
-
-  pdf-parser:
-    image: ghcr.io/leosauzza/expense-tracker-pdf-parser:latest
-    environment:
-      PORT: 3001
-      NODE_ENV: production
-    networks:
-      - expense-tracker-network
-    restart: unless-stopped
-
-  frontend:
-    image: ghcr.io/leosauzza/expense-tracker-frontend:latest
-    ports:
-      - "3500:80"
-    networks:
-      - expense-tracker-network
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-
-networks:
-  expense-tracker-network:
-```
-
-4. Agrega las environment variables
-5. **Importante**: Habilita **Webhook** en el stack (aparece después de crearlo)
-6. Copia la URL del webhook (ej: `http://portainer:9000/api/stacks/webhook/abc-123`)
-
-## Paso 3: Configurar Secret del Webhook
-
-En GitHub → Settings → Secrets:
-
-| Secret Name | Valor |
-|-------------|-------|
-| `PORTAINER_WEBHOOK_URL` | URL completa del webhook que copiaste |
-
-## Paso 4: Configurar GHCR en Portainer
-
-Para que Portainer pueda pull imágenes de GitHub Container Registry:
-
-1. En Portainer: **Registries** → **Add registry**
-2. Type: **Custom**
-3. Name: `ghcr.io`
-4. Registry URL: `ghcr.io`
-5. Authentication: ON
-6. Username: tu usuario de GitHub
-7. Password: Personal Access Token con permisos `read:packages`
-
-## Paso 5: Probar
-
-Haz push a `main`. El workflow:
-1. Hará build de las imágenes
-2. Las subirá a GHCR
-3. Llamará al webhook de Portainer
-4. Portainer hará redeploy con las nuevas imágenes
-
----
-
-## 🔧 Preparación Inicial del Servidor
-
-Independientemente de la opción que elijas, necesitas:
-
-### 1. Instalar Docker y Docker Compose
+### 1.1 Instalar Docker
 
 ```bash
 # Actualizar sistema
 sudo apt update && sudo apt upgrade -y
 
-# Instalar dependencias
-sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
-
-# Agregar repo de Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
 # Instalar Docker
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo apt install -y docker.io docker-compose-plugin
 
-# Agregar usuario al grupo docker
+# Agregar tu usuario al grupo docker
 sudo usermod -aG docker $USER
 newgrp docker
+
+# Verificar instalación
+docker --version
+docker compose version
 ```
 
-### 2. Instalar Portainer
+### 1.2 Instalar Portainer
 
 ```bash
 # Crear volumen para Portainer
@@ -268,67 +71,263 @@ docker run -d \
   portainer/portainer-ce:latest
 ```
 
-Accede a Portainer en: `https://TU_SERVIDOR:9443` (o `http://TU_SERVIDOR:9000`)
+Accedé a Portainer en: `https://IP_DE_TU_SERVIDOR:9443`
+
+Configurá el usuario admin inicial.
 
 ---
 
-## 📁 Archivos del Proyecto
+## Paso 2: Crear el Stack en Portainer
 
-| Archivo | Descripción |
-|---------|-------------|
-| `docker-compose.yml` | Configuración de desarrollo local |
-| `docker-compose.prod.yml` | Configuración producción (build local) |
-| `docker-compose.portainer.yml` | Configuración usando imágenes GHCR |
-| `.github/workflows/deploy.yml` | Deploy vía SSH (Opción B) |
-| `.github/workflows/build-and-push.yml` | Build + push a GHCR (Opción C) |
+### 2.1 Ir a Stacks
 
----
+1. En el menú lateral, click en **Stacks**
+2. Click en **+ Add stack**
 
-## 🛠️ Troubleshooting
+### 2.2 Configurar el Stack
 
-### "Permission denied" en GitHub Actions
+| Campo | Valor |
+|-------|-------|
+| **Name** | `family-expense-tracker` |
+| **Build method** | **Repository** |
+| **Repository URL** | `https://github.com/leosauzza/family-expense-tracker` |
+| **Repository reference** | `refs/heads/main` |
+| **Compose path** | `docker-compose.prod.yml` |
+
+### 2.3 Habilitar Actualización Automática
+
+En **Automatic updates**:
+- ✅ **Enable automatic updates**
+- **Fetch interval**: `5m`
+
+### 2.4 Configurar Variables de Entorno
+
+En la sección **Environment variables**, agregá:
 
 ```bash
-# En el servidor, verificar que la key está en authorized_keys
-cat ~/.ssh/authorized_keys
-
-# Verificar permisos
-chmod 700 ~/.ssh
-chmod 600 ~/.ssh/authorized_keys
+POSTGRES_DB=expensetracker
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=tu_password_muy_segura_aqui
+ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=expensetracker;Username=postgres;Password=tu_password_muy_segura_aqui
+FRONTEND_PORT=3500
+BACKEND_PORT=3501
 ```
 
-### Portainer no puede pull imágenes de GHCR
+> ⚠️ **IMPORTANTE**: Usá la misma contraseña en `POSTGRES_PASSWORD` y en `ConnectionStrings__DefaultConnection`.
 
-1. Verifica que creaste el Personal Access Token con permiso `read:packages`
-2. En Portainer: **Registries** → Verifica que la registry `ghcr.io` está configurada
-3. Prueba hacer login manual: `docker login ghcr.io -u TU_USUARIO`
+### 2.5 Deploy
 
-### Variables de entorno no aplican
+Click en **Deploy the stack**
 
-En Portainer, después de cambiar variables:
-1. Ve al stack
-2. Click **Editor** tab
-3. Click **Update the stack**
-4. Selecciona **Re-pull image and redeploy**
+Esto va a:
+1. Clonar el repo
+2. Crear la base de datos
+3. Ejecutar el script de inicialización (crea usuarios Leo y Anto)
+4. Build e iniciar los servicios
+
+**Tarda 3-5 minutos la primera vez.**
+
+---
+
+## Paso 3: Verificar que Funcionó
+
+### 3.1 Ver contenedores
+
+En Portainer → **Containers**, deberías ver 4 corriendo:
+- `expense-tracker-db` ✅
+- `expense-tracker-backend` ✅
+- `expense-tracker-pdf-parser` ✅
+- `expense-tracker-frontend` ✅
+
+### 3.2 Verificar usuarios creados
+
+1. Andá a **Containers** → `expense-tracker-db`
+2. Click en **Console** → **Connect**
+3. Ejecutá:
+
+```bash
+psql -U postgres -d expensetracker -c 'SELECT "Name", "Slug", "Initial", "Color" FROM "Users";'
+```
+
+Deberías ver:
+```
+ Name | Slug | Initial |  Color
+------+------+---------+----------
+ Leo  | leo  | L       | #6366f1
+ Anto | anto | A       | #ec4899
+```
+
+### 3.3 Acceder a la aplicación
+
+Desde tu navegador:
+- **App**: `http://IP_DE_TU_SERVIDOR:3500`
+- **API**: `http://IP_DE_TU_SERVIDOR:3501`
+- **Swagger**: `http://IP_DE_TU_SERVIDOR:3501/swagger`
+
+---
+
+## Paso 4: Probar Deploy Automático
+
+Hacé un cambio y pusheá:
+
+```bash
+# En tu máquina local
+git add .
+git commit -m "Test deploy automático"
+git push origin main
+```
+
+En ~5 minutos, Portainer detectará el cambio y redeployará.
+
+---
+
+# Opción B: GitHub Actions + SSH
+
+## Paso 1: Generar SSH Key en tu servidor
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/github_actions
+cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/github_actions  # Copiá TODO el contenido
+```
+
+## Paso 2: Configurar Secrets en GitHub
+
+En tu repo → **Settings** → **Secrets and variables** → **Actions**:
+
+| Secret Name | Valor |
+|-------------|-------|
+| `SERVER_IP` | IP de tu servidor |
+| `SERVER_USER` | tu usuario |
+| `SSH_PRIVATE_KEY` | Contenido de `~/.ssh/github_actions` |
+
+## Paso 3: Preparar el servidor
+
+```bash
+# Crear directorio
+sudo mkdir -p /opt/family-expense-tracker
+sudo chown $USER:$USER /opt/family-expense-tracker
+cd /opt/family-expense-tracker
+
+# Crear archivo .env
+nano .env
+```
+
+Contenido del `.env`:
+```bash
+POSTGRES_DB=expensetracker
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=tu_password_muy_segura_aqui
+ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=expensetracker;Username=postgres;Password=tu_password_muy_segura_aqui
+FRONTEND_PORT=3500
+BACKEND_PORT=3501
+```
+
+## Paso 4: Probar
+
+Hacé push a `main` o ejecutá manualmente el workflow en GitHub → Actions.
+
+---
+
+# Opción C: GitHub Actions + Portainer Webhook
+
+## Paso 1: Crear Stack en Portainer
+
+En Portainer → **Stacks** → **Add Stack** → **Web editor**:
+
+Copiá el contenido de `docker-compose.portainer.yml` del repo.
+
+En **Environment variables**, agregá las mismas variables que en la Opción A.
+
+Después de crear el stack, copiá la **Webhook URL** (aparece en el editor del stack).
+
+## Paso 2: Configurar GitHub Secrets
+
+| Secret Name | Valor |
+|-------------|-------|
+| `PORTAINER_WEBHOOK_URL` | La URL del webhook que copiaste |
+
+## Paso 3: Configurar GHCR en Portainer
+
+1. Andá a **Registries** → **Add registry**
+2. Type: **Custom**
+3. Name: `ghcr.io`
+4. Registry URL: `ghcr.io`
+5. Authentication: ON
+6. Username: tu usuario de GitHub
+7. Password: Personal Access Token con `read:packages`
+
+---
+
+## 🛠️ Solución de Problemas
+
+### Los usuarios no aparecen en la base de datos
+
+El script de inicialización solo corre cuando la base de datos se crea por primera vez.
+
+**Para recrear la DB con los usuarios:**
+
+```bash
+# En el servidor
+docker compose -f docker-compose.prod.yml down -v  # Borra todo
+docker compose -f docker-compose.prod.yml up -d    # Recrea todo
+```
+
+⚠️ Esto borra todos los datos.
+
+### Para insertar usuarios manualmente (sin borrar datos):
+
+```bash
+# Conectarse al contenedor de DB
+docker exec -it expense-tracker-db psql -U postgres -d expensetracker
+
+# Insertar usuarios
+INSERT INTO "Users" ("Id", "Name", "Slug", "Initial", "Color", "CreatedAt")
+VALUES 
+  ('11111111-1111-1111-1111-111111111111'::uuid, 'Leo', 'leo', 'L', '#6366f1', NOW()),
+  ('22222222-2222-2222-2222-222222222222'::uuid, 'Anto', 'anto', 'A', '#ec4899', NOW())
+ON CONFLICT ("Id") DO NOTHING;
+
+# Salir
+\q
+```
+
+### Error "relation Users does not exist"
+
+Significa que las tablas no se crearon. El backend debería crearlas con migraciones. Verificá los logs del backend en Portainer.
 
 ### Puertos ocupados
 
 ```bash
 # Ver qué usa el puerto
 sudo lsof -i :3500
-sudo lsof -i :3501
 
-# Cambiar puertos en las environment variables del stack:
+# Cambiar puertos en las environment variables:
 FRONTEND_PORT=3600
 BACKEND_PORT=3601
 ```
 
 ---
 
-## 🎉 ¡Listo!
+## 📁 Archivos Importantes
 
-Elige la opción que prefieras:
+| Archivo | Descripción |
+|---------|-------------|
+| `docker-compose.prod.yml` | Configuración producción con build local |
+| `docker-compose.portainer.yml` | Configuración usando imágenes GHCR |
+| `database/init/01-seed-users.sql` | Script SQL que crea usuarios Leo y Anto |
+| `.github/workflows/deploy.yml` | Deploy vía SSH |
+| `.github/workflows/build-and-push.yml` | Build + push a GHCR |
 
-- **Opción A (GitOps)**: Más simple, todo en Portainer
-- **Opción B (SSH)**: Control total desde GitHub
-- **Opción C (Webhook)**: Build rápido en cloud, deploy en Portainer
+---
+
+## ✅ Checklist Final
+
+- [ ] Docker instalado en el servidor
+- [ ] Portainer corriendo y accesible
+- [ ] Stack creado en Portainer
+- [ ] Variables de entorno configuradas
+- [ ] Stack deployado exitosamente
+- [ ] Usuarios Leo y Anto creados en la DB
+- [ ] Aplicación accesible en puerto 3500
+- [ ] Probado el deploy automático
