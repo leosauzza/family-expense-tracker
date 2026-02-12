@@ -1,0 +1,355 @@
+{
+  "success": true,
+  "bank": "galicia",
+  "transactions": [
+    {
+      "id": "txn_0w8plxtce",
+      "date": "2026-01-28",
+      "description": "STRIPE-Z.AI",
+      "amountARS": 0,
+      "amountUSD": 8.1,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_r0tmhlk0k",
+      "date": "2026-01-27",
+      "description": "MERPAGO*BIDCOM (01/06)",
+      "amountARS": 31316.1,
+      "amountUSD": 0,
+      "installmentInfo": "01/06"
+    },
+    {
+      "id": "txn_qwkrgkk50",
+      "date": "2026-01-27",
+      "description": "MERPAGO*PONTECSA (01/06)",
+      "amountARS": 15346.33,
+      "amountUSD": 0,
+      "installmentInfo": "01/06"
+    },
+    {
+      "id": "txn_3i2zkvrc7",
+      "date": "2026-01-27",
+      "description": "K DLO*PEDIDOSYA DELICIAS",
+      "amountARS": 9699,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_gx57z9h1p",
+      "date": "2026-01-27",
+      "description": "K DLO*PEDIDOSYA PROPINA",
+      "amountARS": 550,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_ih6kpzxln",
+      "date": "2026-01-26",
+      "description": "MERPAGO*TECNOLIVEUSA (01/06)",
+      "amountARS": 4489.85,
+      "amountUSD": 0,
+      "installmentInfo": "01/06"
+    },
+    {
+      "id": "txn_6dngwtrqw",
+      "date": "2026-01-26",
+      "description": "MERPAGO*ANDREANI (01/03)",
+      "amountARS": 3266.65,
+      "amountUSD": 0,
+      "installmentInfo": "01/03"
+    },
+    {
+      "id": "txn_9kj4gw3w4",
+      "date": "2026-01-25",
+      "description": "K MERPAGO*SUPERDIA",
+      "amountARS": 25558.5,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_7tq6s0yem",
+      "date": "2026-01-25",
+      "description": "K DLO*PEDIDOSYA GRIDO HE",
+      "amountARS": 26429,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_p9ihm0y19",
+      "date": "2026-01-25",
+      "description": "K DLO*PEDIDOSYA PROPINA",
+      "amountARS": 700,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_n8k8wzxku",
+      "date": "2026-01-23",
+      "description": "K MERPAGO*METROGASSA",
+      "amountARS": 24900.03,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_o3j3thzpu",
+      "date": "2026-01-23",
+      "description": "K MERPAGO*SUPERDIA",
+      "amountARS": 27975,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_oiei0pwl1",
+      "date": "2026-01-22",
+      "description": "K MERPAGO*SUPERDIA",
+      "amountARS": 27156.5,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_7yzzbefd7",
+      "date": "2026-01-21",
+      "description": "APPYPF 00364 COMBUST",
+      "amountARS": 81016.96,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_h593gh4ho",
+      "date": "2026-01-21",
+      "description": "GOOGLE *YouTubeP P1i1Newn",
+      "amountARS": 0,
+      "amountUSD": 4.79,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_9g304122b",
+      "date": "2026-01-19",
+      "description": "K MERPAGO*COMPLEJODEPORTIVO",
+      "amountARS": 5349.5,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_8d7wss0ju",
+      "date": "2026-01-18",
+      "description": "MERPAGO*MCDONALDS",
+      "amountARS": 4499,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_h77mkg7kk",
+      "date": "2026-01-18",
+      "description": "K MERPAGO*HIPERCHANGOMA",
+      "amountARS": 46791.3,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_hyvg5zls9",
+      "date": "2026-01-17",
+      "description": "K MERPAGO*SUPERDIA",
+      "amountARS": 26942.5,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_c6m8znspo",
+      "date": "2026-01-16",
+      "description": "PERSONAL",
+      "amountARS": 24962.01,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_815xxuiki",
+      "date": "2026-01-16",
+      "description": "F AIRBNB * HMSZC9P3RT",
+      "amountARS": 0,
+      "amountUSD": 250.06,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_50t8hs381",
+      "date": "2026-01-15",
+      "description": "K MERPAGO*SUPERDIA",
+      "amountARS": 60955,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_xbm8ulasz",
+      "date": "2026-01-14",
+      "description": "K DLO*PEDIDOSYA PROPINA",
+      "amountARS": 650,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_7hjsd07xu",
+      "date": "2026-01-14",
+      "description": "K PEDIDOSYA*MCDONALDS AVA",
+      "amountARS": 45288,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_hqdfal2ho",
+      "date": "2026-01-13",
+      "description": "K MERPAGO*DISNEYPL",
+      "amountARS": 18399,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_1bl2noplk",
+      "date": "2026-01-10",
+      "description": "K DLO*PEDIDOSYA GRIDO HE",
+      "amountARS": 20589,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_n0x8shcif",
+      "date": "2026-01-10",
+      "description": "K DLO*PEDIDOSYA PROPINA",
+      "amountARS": 600,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_xqua2bn2s",
+      "date": "2026-01-09",
+      "description": "MERPAGO*SUPERDIA",
+      "amountARS": 18850.5,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_69d6s127b",
+      "date": "2026-01-09",
+      "description": "K MERPAGO*HIPERCHANGOMA",
+      "amountARS": 41977.2,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_ilm8nkuez",
+      "date": "2026-01-09",
+      "description": "K MERPAGO*HIPERCHANGOMA",
+      "amountARS": 27337.95,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_1r1z3iozy",
+      "date": "2026-01-09",
+      "description": "PERSONAL",
+      "amountARS": 47655.01,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_0uto1lujn",
+      "date": "2026-01-07",
+      "description": "K MERPAGO*COMPLEJODEPORTIVO",
+      "amountARS": 3209.7,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_kjavzl4v5",
+      "date": "2026-01-06",
+      "description": "K MERPAGO*SUPERDIA",
+      "amountARS": 27376.8,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_bqvgsdmwb",
+      "date": "2026-01-05",
+      "description": "K MERPAGO*COMPLEJODEPORTIVO",
+      "amountARS": 6419.4,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_e66mzuneu",
+      "date": "2026-01-05",
+      "description": "K MERPAGO*PLENKOVICHIVANNIC",
+      "amountARS": 42796,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_1zkzomayk",
+      "date": "2026-01-02",
+      "description": "FEDERACION PAT0000434184683-004-000",
+      "amountARS": 139016.92,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_2s62qr69b",
+      "date": "2026-01-01",
+      "description": "K MERPAGO*LEANDROA",
+      "amountARS": 1000,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_4zd72us9h",
+      "date": "2025-12-31",
+      "description": "K MERPAGO*DELICIAS",
+      "amountARS": 25996,
+      "amountUSD": 0,
+      "installmentInfo": null
+    },
+    {
+      "id": "txn_olgch34ui",
+      "date": "2025-12-20",
+      "description": "MERPAGO*CEBRA (02/03)",
+      "amountARS": 5663.33,
+      "amountUSD": 0,
+      "installmentInfo": "02/03"
+    },
+    {
+      "id": "txn_yl8cavr2c",
+      "date": "2025-12-09",
+      "description": "MERPAGO*MERCADOLIBRE (02/06)",
+      "amountARS": 18420.66,
+      "amountUSD": 0,
+      "installmentInfo": "02/06"
+    },
+    {
+      "id": "txn_p6l3z0hki",
+      "date": "2025-11-13",
+      "description": "EASY AVELLANEDA (03/03)",
+      "amountARS": 36183.33,
+      "amountUSD": 0,
+      "installmentInfo": "03/03"
+    },
+    {
+      "id": "txn_se8dkheit",
+      "date": "2025-11-07",
+      "description": "OPTICA LOMBARDI (03/03)",
+      "amountARS": 62700.33,
+      "amountUSD": 0,
+      "installmentInfo": "03/03"
+    },
+    {
+      "id": "txn_j6nq1u3wb",
+      "date": "2025-09-08",
+      "description": "MERPAGO*PEQUENOSHINCH (05/06)",
+      "amountARS": 5826,
+      "amountUSD": 0,
+      "installmentInfo": "05/06"
+    }
+  ],
+  "metadata": {
+    "fileName": "galicia-example.pdf",
+    "processedAt": "2026-02-12T03:34:23.804Z",
+    "transactionCount": 43
+  }
+}

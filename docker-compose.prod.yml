@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Internal only (no port exposed)
+  db:
+    image: postgres:16-alpine
+    container_name: expense-tracker-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - expense-tracker-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend .NET API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: expense-tracker-backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "3501:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - expense-tracker-network
+    restart: unless-stopped
+
+  # PDF Parser Service - Internal only (no port exposed)
+  # Only accessible by backend via Docker network
+  pdf-parser:
+    build:
+      context: ./pdf-parser-service
+      dockerfile: Dockerfile
+    container_name: expense-tracker-pdf-parser
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+    expose:
+      - "3001"
+    networks:
+      - expense-tracker-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Frontend React App - Served by Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: expense-tracker-frontend
+    ports:
+      - "3500:80"
+    depends_on:
+      - backend
+    networks:
+      - expense-tracker-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  expense-tracker-network:
+    driver: bridge

@@ -1,0 +1,181 @@
+{
+  "app": {
+    "title": "Family Expense Tracker"
+  },
+  "home": {
+    "selectUser": "Who are you?",
+    "selectUserSubtitle": "Select your user to continue"
+  },
+  "dashboard": {
+    "wallet": {
+      "title": "Wallet",
+      "edit": "Edit",
+      "editTitle": "Edit wallet amount"
+    },
+    "fixedExpenses": {
+      "title": "Monthly Fixed Expenses",
+      "add": "Add personal expense"
+    },
+    "sharedExpenses": {
+      "myShared": "Shared expenses paid by me",
+      "othersShared": "Shared expenses paid by {name}",
+      "add": "Add shared expense"
+    },
+    "thirdParty": {
+      "addList": "Add new list",
+      "addExpense": "Add expense",
+      "defaultName": "Third party expenses",
+      "listNamePlaceholder": "List name",
+      "subtitle": "Expenses I paid for people outside the system"
+    },
+    "listSelector": {
+      "title": "Select list type",
+      "description": "What type of expenses do you want to add?",
+      "externalThirdParty": {
+        "title": "Expenses 100% for people outside the system",
+        "description": "Expenses you paid but are completely for someone not in the system (e.g., friends, external family)"
+      },
+      "systemUser": {
+        "title": "Expenses 100% for another system user",
+        "description": "Expenses you paid but are completely for another system user (e.g., Leo paid something that is 100% for Anto)",
+        "selectUser": "Select user",
+        "selectPlaceholder": "Choose user..."
+      },
+      "externalShared": {
+        "title": "Expenses shared with people outside the system",
+        "description": "Expenses you share with people not in the system (e.g., dinner with friends)",
+        "partyNames": "Names of the people",
+        "partyPlaceholder": "E.g., John, Mary, Peter (comma separated)"
+      }
+    },
+    "sharedExpenseList": {
+      "forUser": "For: {name}",
+      "withExternal": "With: {parties}",
+      "splitAmongAll": "Split among all system users",
+      "empty": "No expenses in this list",
+      "systemUserTitle": "Expenses I paid for {name}",
+      "externalSharedTitle": "Expenses shared with external parties",
+      "systemSharedTitle": "System shared expenses"
+    },
+    "calculation": {
+      "title": "Final Balance",
+      "wallet": "Wallet",
+      "thirdParty": "Third party expenses",
+      "fixedExpenses": "Fixed expenses",
+      "sharedSplit": "Shared expenses split",
+      "systemUser": "Expenses for other users",
+      "externalShared": "Shared with external",
+      "formula": "Formula: Wallet + Third Party + For Others + (Ext/2) - Fixed + (Shared / Users)"
+    },
+    "theyOweMe": {
+      "title": "They owe me",
+      "thirdParty": "Third party expenses",
+      "shared": "Shared expenses",
+      "sharedSplit": "My share from shared",
+      "systemUser": "Expenses I paid for others",
+      "externalShared": "Shared with external (50%)",
+      "formula": "Formula: ((Paid by me + Paid by others) / {count}) - Paid by me",
+      "noThirdParty": "No third party expenses"
+    },
+    "copyFromPrevious": {
+      "title": "Copy data",
+      "message": "Do you want to copy data from previous month?",
+      "yes": "Yes",
+      "no": "No"
+    }
+  },
+  "common": {
+    "detail": "Detail",
+    "amountARS": "Amount AR$",
+    "amountUSD": "Amount US$",
+    "paid": "Paid",
+    "pending": "Pending",
+    "clickToChange": "Click to change",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "add": "Add",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "confirm": "Confirm",
+    "upload": "Upload",
+    "analyzing": "Analyzing...",
+    "markAllPaid": "Mark all paid",
+    "arsSymbol": "AR$",
+    "usdSymbol": "US$"
+  },
+  "header": {
+    "addCreditCard": "Add credit card statement",
+    "addCreditCardShort": "+ statement",
+    "addListShort": "New list",
+    "settings": "Settings",
+    "changeLanguage": "Change language",
+    "logout": "Logout",
+    "spanish": "Español",
+    "english": "English"
+  },
+  "creditCardImport": {
+    "uploadTitle": "Import Credit Card Statement",
+    "dragDrop": "Drag and drop PDF here",
+    "or": "or",
+    "selectFile": "Select file",
+    "pdfOnly": "PDF files only",
+    "fileSelected": "Selected file: {{name}}",
+    "analyzing": "Analyzing statement...",
+    "analyzingDescription": "We're extracting expenses from your statement. This may take a few seconds.",
+    "reviewTitle": "Review Extracted Expenses ({{count}})",
+    "reviewDescription": "Mark expenses as shared or for another person. Unmarked ones will be personal.",
+    "detailColumn": "Detail",
+    "amountARSColumn": "AR$",
+    "amountUSDColumn": "US$",
+    "sharedColumn": "Shared",
+    "otherPersonColumn": "Other Person",
+    "personalExpense": "Personal expense",
+    "sharedExpense": "Shared expense",
+    "otherPersonExpense": "Other person's expense",
+    "sharedConfigTitle": "Configure Shared Expenses ({{count}})",
+    "sharedConfigDescription": "Select who to share each expense with.",
+    "sharedWithColumn": "Share With",
+    "sharedWithSystem": "Family in System",
+    "sharedWithOther": "Other",
+    "externalPartiesTitle": "Specify External Parties",
+    "externalPartiesDescription": "Enter the name of the external person for each expense.",
+    "partyNameColumn": "Name",
+    "partyNamePlaceholder": "E.g., John, Maria's Family",
+    "otherPersonConfigTitle": "Configure Expenses for Others ({{count}})",
+    "otherPersonConfigDescription": "Indicate if the expense belongs to a system user or someone external.",
+    "personTypeColumn": "Person Type",
+    "personTypeSystem": "System User",
+    "personTypeExternal": "External",
+    "selectUserColumn": "User",
+    "selectUserPlaceholder": "Select...",
+    "externalNameColumn": "External Name",
+    "externalNamePlaceholder": "E.g., Peter",
+    "errors": {
+      "invalidPdf": "File must be a valid PDF",
+      "parseError": "Could not analyze the statement. Please verify it's a credit card PDF.",
+      "uploadFailed": "Error uploading file. Please try again.",
+      "confirmFailed": "Error saving expenses. Please try again.",
+      "noExpenses": "No expenses found in the statement"
+    },
+    "success": {
+      "title": "Import Successful!",
+      "description": "Expenses have been imported successfully."
+    }
+  },
+  "expenseModal": {
+    "addTitle": "Add expense",
+    "editTitle": "Edit expense",
+    "detailPlaceholder": "Ex: Credit card",
+    "amountARSPlaceholder": "0.00",
+    "amountUSDPlaceholder": "0.00"
+  },
+  "errors": {
+    "userNotFound": "User not found",
+    "invalidUrl": "Invalid URL",
+    "loadingFailed": "Failed to load data"
+  }
+}

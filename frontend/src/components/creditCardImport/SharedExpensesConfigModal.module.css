@@ -1,0 +1,128 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--color-border, #e2e8f0);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+}
+
+.table th {
+  background-color: var(--color-background, #f8fafc);
+  font-weight: 600;
+  color: var(--color-text, #1e293b);
+  white-space: nowrap;
+}
+
+.table tbody tr:hover {
+  background-color: var(--color-background, #f8fafc);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.detailColumn {
+  min-width: 200px;
+}
+
+.amountColumn {
+  min-width: 120px;
+  text-align: right;
+}
+
+.selectColumn {
+  min-width: 180px;
+}
+
+.detailCell {
+  color: var(--color-text, #1e293b);
+  word-break: break-word;
+}
+
+.amountCell {
+  text-align: right;
+  font-family: 'SF Mono', 'Monaco', monospace;
+  white-space: nowrap;
+}
+
+.amountARS {
+  color: var(--color-ars, #3b82f6);
+}
+
+.amountUSD {
+  color: var(--color-usd, #10b981);
+}
+
+.selectCell {
+  text-align: left;
+}
+
+.select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.9375rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 6px;
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-text, #1e293b);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary, #6366f1);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.select:hover {
+  border-color: var(--color-primary-light, #818cf8);
+}
+
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .detailColumn {
+    min-width: 150px;
+  }
+
+  .amountColumn {
+    min-width: 100px;
+  }
+
+  .selectColumn {
+    min-width: 140px;
+  }
+
+  .select {
+    padding: 0.375rem;
+    font-size: 0.875rem;
+  }
+}

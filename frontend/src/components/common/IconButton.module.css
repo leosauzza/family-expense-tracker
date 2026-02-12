@@ -1,0 +1,48 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: none;
+  color: var(--color-text-muted, #64748b);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Sizes */
+.small {
+  width: 28px;
+  height: 28px;
+  padding: 0.25rem;
+}
+
+.medium {
+  width: 36px;
+  height: 36px;
+  padding: 0.5rem;
+}
+
+/* Variants */
+.default:hover:not(:disabled) {
+  background-color: var(--color-background, #f8fafc);
+  color: var(--color-text, #1e293b);
+}
+
+.danger {
+  color: var(--color-danger, #ef4444);
+}
+
+.danger:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.ghost:hover:not(:disabled) {
+  background-color: transparent;
+  color: var(--color-primary, #6366f1);
+}

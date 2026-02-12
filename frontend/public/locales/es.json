@@ -1,0 +1,181 @@
+{
+  "app": {
+    "title": "Seguimiento de Gastos Familiar"
+  },
+  "home": {
+    "selectUser": "¿Quién eres?",
+    "selectUserSubtitle": "Selecciona tu usuario para continuar"
+  },
+  "dashboard": {
+    "wallet": {
+      "title": "Billetera",
+      "edit": "Editar",
+      "editTitle": "Editar monto de billetera"
+    },
+    "fixedExpenses": {
+      "title": "Gastos Fijos Mensuales",
+      "add": "Agregar gasto personal"
+    },
+    "sharedExpenses": {
+      "myShared": "Gastos compartidos pagados por mí",
+      "othersShared": "Gastos compartidos pagados por {name}",
+      "add": "Agregar gasto compartido"
+    },
+    "thirdParty": {
+      "addList": "Agregar nueva lista",
+      "addExpense": "Agregar gasto",
+      "defaultName": "Gastos de terceros",
+      "listNamePlaceholder": "Nombre de la lista",
+      "subtitle": "Gastos pagados por mí para personas fuera del sistema"
+    },
+    "listSelector": {
+      "title": "Seleccionar tipo de lista",
+      "description": "¿Qué tipo de gastos querés agregar?",
+      "externalThirdParty": {
+        "title": "Gastos 100% de gente fuera del sistema",
+        "description": "Gastos que pagaste vos pero son completamente de alguien que no está en el sistema (ej: amigos, familia externa)"
+      },
+      "systemUser": {
+        "title": "Gastos 100% de otro usuario del sistema",
+        "description": "Gastos que pagaste vos pero son completamente de otro usuario del sistema (ej: Leo pagó algo que es 100% de Anto)",
+        "selectUser": "Seleccionar usuario",
+        "selectPlaceholder": "Elegir usuario..."
+      },
+      "externalShared": {
+        "title": "Gastos compartidos con gente fuera del sistema",
+        "description": "Gastos que compartís con personas que no están en el sistema (ej: cena con amigos)",
+        "partyNames": "Nombres de las personas",
+        "partyPlaceholder": "Ej: Juan, María, Pedro (separados por coma)"
+      }
+    },
+    "sharedExpenseList": {
+      "forUser": "Para: {name}",
+      "withExternal": "Con: {parties}",
+      "splitAmongAll": "Dividido entre todos los usuarios del sistema",
+      "empty": "No hay gastos en esta lista",
+      "systemUserTitle": "Gastos pagados por mí para {name}",
+      "externalSharedTitle": "Gastos compartidos con externos",
+      "systemSharedTitle": "Gastos compartidos del sistema"
+    },
+    "calculation": {
+      "title": "Balance Final",
+      "wallet": "Billetera",
+      "thirdParty": "Gastos de terceros",
+      "fixedExpenses": "Gastos fijos",
+      "sharedSplit": "División gastos compartidos",
+      "systemUser": "Gastos para otros usuarios",
+      "externalShared": "Compartidos con externos",
+      "formula": "Fórmula: Billetera + Terceros + Para Otros + (Ext/2) - Fijos + (Compartidos / Usuarios)"
+    },
+    "theyOweMe": {
+      "title": "Me deben",
+      "thirdParty": "Gastos de terceros",
+      "shared": "Gastos compartidos",
+      "sharedSplit": "Mi parte de compartidos",
+      "systemUser": "Gastos que pagué para otros",
+      "externalShared": "Compartidos con externos (50%)",
+      "formula": "Fórmula: ((Pagados por mí + Pagados por otros) / {count}) - Pagados por mí",
+      "noThirdParty": "No hay gastos de terceros"
+    },
+    "copyFromPrevious": {
+      "title": "Copiar datos",
+      "message": "¿Querés copiar los datos del mes anterior?",
+      "yes": "Sí",
+      "no": "No"
+    }
+  },
+  "common": {
+    "detail": "Detalle",
+    "amountARS": "Monto AR$",
+    "amountUSD": "Monto US$",
+    "paid": "Pagado",
+    "pending": "Pendiente",
+    "clickToChange": "Clic para cambiar",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "add": "Agregar",
+    "close": "Cerrar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "confirm": "Confirmar",
+    "upload": "Subir",
+    "analyzing": "Analizando...",
+    "markAllPaid": "Marcar todo pagado",
+    "arsSymbol": "AR$",
+    "usdSymbol": "US$"
+  },
+  "header": {
+    "addCreditCard": "Agregar resumen tarjeta",
+    "addCreditCardShort": "+ resumen",
+    "addListShort": "Nueva lista",
+    "settings": "Configuración",
+    "changeLanguage": "Cambiar idioma",
+    "logout": "Cerrar sesión",
+    "spanish": "Español",
+    "english": "English"
+  },
+  "creditCardImport": {
+    "uploadTitle": "Importar Resumen de Tarjeta",
+    "dragDrop": "Arrastra y suelta el PDF aquí",
+    "or": "o",
+    "selectFile": "Seleccionar archivo",
+    "pdfOnly": "Solo archivos PDF",
+    "fileSelected": "Archivo seleccionado: {{name}}",
+    "analyzing": "Analizando resumen...",
+    "analyzingDescription": "Estamos extrayendo los gastos de tu resumen. Esto puede tardar unos segundos.",
+    "reviewTitle": "Revisar Gastos Extraídos ({{count}})",
+    "reviewDescription": "Marca los gastos como compartidos o de otra persona. Los no marcados serán personales.",
+    "detailColumn": "Detalle",
+    "amountARSColumn": "AR$",
+    "amountUSDColumn": "US$",
+    "sharedColumn": "Compartido",
+    "otherPersonColumn": "Otra Persona",
+    "personalExpense": "Gasto personal",
+    "sharedExpense": "Gasto compartido",
+    "otherPersonExpense": "Gasto de otra persona",
+    "sharedConfigTitle": "Configurar Gastos Compartidos ({{count}})",
+    "sharedConfigDescription": "Selecciona con quién compartir cada gasto.",
+    "sharedWithColumn": "Compartir Con",
+    "sharedWithSystem": "Familia en Sistema",
+    "sharedWithOther": "Otro",
+    "externalPartiesTitle": "Especificar Personas Externas",
+    "externalPartiesDescription": "Ingresa el nombre de la persona externa para cada gasto.",
+    "partyNameColumn": "Nombre",
+    "partyNamePlaceholder": "Ej: Juan, Familia de María",
+    "otherPersonConfigTitle": "Configurar Gastos de Otras Personas ({{count}})",
+    "otherPersonConfigDescription": "Indica si el gasto es de un usuario del sistema o de alguien externo.",
+    "personTypeColumn": "Tipo de Persona",
+    "personTypeSystem": "Usuario del Sistema",
+    "personTypeExternal": "Externo",
+    "selectUserColumn": "Usuario",
+    "selectUserPlaceholder": "Seleccionar...",
+    "externalNameColumn": "Nombre Externo",
+    "externalNamePlaceholder": "Ej: Pedro",
+    "errors": {
+      "invalidPdf": "El archivo debe ser un PDF válido",
+      "parseError": "No pudimos analizar el resumen. Verifica que sea un PDF de tarjeta de crédito.",
+      "uploadFailed": "Error al subir el archivo. Intenta nuevamente.",
+      "confirmFailed": "Error al guardar los gastos. Intenta nuevamente.",
+      "noExpenses": "No se encontraron gastos en el resumen"
+    },
+    "success": {
+      "title": "¡Importación Exitosa!",
+      "description": "Los gastos han sido importados correctamente."
+    }
+  },
+  "expenseModal": {
+    "addTitle": "Agregar gasto",
+    "editTitle": "Editar gasto",
+    "detailPlaceholder": "Ej: Tarjeta de crédito",
+    "amountARSPlaceholder": "0.00",
+    "amountUSDPlaceholder": "0.00"
+  },
+  "errors": {
+    "userNotFound": "Usuario no encontrado",
+    "invalidUrl": "URL inválida",
+    "loadingFailed": "Error al cargar los datos"
+  }
+}

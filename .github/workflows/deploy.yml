@@ -1,0 +1,74 @@
+name: Deploy to Home Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to home server
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            set -e
+            
+            # Clone repo if doesn't exist, otherwise pull
+            if [ ! -d "/opt/family-expense-tracker/.git" ]; then
+              echo "Cloning repository..."
+              sudo mkdir -p /opt/family-expense-tracker
+              sudo chown $(whoami):$(whoami) /opt/family-expense-tracker
+              git clone https://github.com/leosauzza/family-expense-tracker.git /opt/family-expense-tracker
+            fi
+            
+            cd /opt/family-expense-tracker
+            
+            echo "Pulling latest changes..."
+            git pull origin main
+            
+            # Check if .env exists, if not warn
+            if [ ! -f ".env" ]; then
+              echo "WARNING: .env file not found! Creating from .env.example..."
+              echo "IMPORTANT: Please update the .env file with secure passwords!"
+              cp .env.example .env
+            fi
+            
+            echo "Stopping current containers..."
+            docker compose -f docker-compose.prod.yml down
+            
+            echo "Building and starting new containers..."
+            docker compose -f docker-compose.prod.yml up -d --build
+            
+            echo "Cleaning up unused images..."
+            docker system prune -f
+            
+            echo "Deployment completed successfully!"
+            echo "Frontend: http://${{ secrets.SERVER_IP }}:3500"
+            echo "API: http://${{ secrets.SERVER_IP }}:3501"
+          EOF
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for services to start..."
+          sleep 10
+          
+          # Check if frontend is responding
+          if curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.SERVER_IP }}:3500 | grep -q "200\|302"; then
+            echo "Frontend is up and running!"
+          else
+            echo "Warning: Frontend might not be ready yet (this is normal on first deploy)"
+          fi

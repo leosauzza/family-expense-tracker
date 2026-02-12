@@ -1,0 +1,38 @@
+.card {
+  background-color: var(--color-surface, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin: 0;
+}
+
+.amount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-primary, #6366f1);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767px) {
+  .amount {
+    font-size: 1.5rem;
+  }
+}

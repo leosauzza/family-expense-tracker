@@ -1,0 +1,52 @@
+.sortableItem {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.dragHandle {
+  position: absolute;
+  left: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: var(--color-text-muted, #64748b);
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 4px;
+}
+
+.sortableItem:hover .dragHandle {
+  opacity: 1;
+}
+
+.dragHandle:hover {
+  background-color: var(--color-background, #f8fafc);
+  color: var(--color-text, #1e293b);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragging {
+  opacity: 0.5;
+}
+
+.dragOverlay {
+  cursor: grabbing;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: scale(1.02);
+}
+
+@media (max-width: 1023px) {
+  .dragHandle {
+    left: -20px;
+    opacity: 0.5;
+  }
+}
