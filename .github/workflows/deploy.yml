@@ -1,13 +1,17 @@
-name: Deploy to Home Server
+name: Deploy to Home Server (SSH)
+
+# Este workflow hace deploy vía SSH al servidor
+# Es una alternativa a usar Portainer GitOps
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,37 +30,42 @@ jobs:
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
-            
+
+            APP_DIR="/opt/family-expense-tracker"
+
             # Clone repo if doesn't exist, otherwise pull
-            if [ ! -d "/opt/family-expense-tracker/.git" ]; then
-              echo "Cloning repository..."
-              sudo mkdir -p /opt/family-expense-tracker
-              sudo chown $(whoami):$(whoami) /opt/family-expense-tracker
-              git clone https://github.com/leosauzza/family-expense-tracker.git /opt/family-expense-tracker
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "Creating application directory..."
+              sudo mkdir -p "$APP_DIR"
+              sudo chown $(whoami):$(whoami) "$APP_DIR"
+              git clone https://github.com/leosauzza/family-expense-tracker.git "$APP_DIR"
             fi
-            
-            cd /opt/family-expense-tracker
-            
+
+            cd "$APP_DIR"
+
             echo "Pulling latest changes..."
             git pull origin main
-            
+
             # Check if .env exists, if not warn
             if [ ! -f ".env" ]; then
               echo "WARNING: .env file not found! Creating from .env.example..."
               echo "IMPORTANT: Please update the .env file with secure passwords!"
               cp .env.example .env
             fi
-            
+
             echo "Stopping current containers..."
             docker compose -f docker-compose.prod.yml down
-            
+
             echo "Building and starting new containers..."
             docker compose -f docker-compose.prod.yml up -d --build
-            
+
             echo "Cleaning up unused images..."
             docker system prune -f
-            
+
+            echo ""
+            echo "========================================="
             echo "Deployment completed successfully!"
+            echo "========================================="
             echo "Frontend: http://${{ secrets.SERVER_IP }}:3500"
             echo "API: http://${{ secrets.SERVER_IP }}:3501"
           EOF
@@ -64,11 +73,16 @@ jobs:
       - name: Verify deployment
         run: |
           echo "Waiting for services to start..."
-          sleep 10
-          
+          sleep 15
+
           # Check if frontend is responding
-          if curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.SERVER_IP }}:3500 | grep -q "200\|302"; then
-            echo "Frontend is up and running!"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.SERVER_IP }}:3500 || echo "000")
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
+            echo "✅ Frontend is up and running! (HTTP $HTTP_CODE)"
           else
-            echo "Warning: Frontend might not be ready yet (this is normal on first deploy)"
+            echo "⚠️ Frontend returned HTTP $HTTP_CODE (this is normal on first deploy)"
           fi
+
+          # Check backend health
+          API_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.SERVER_IP }}:3501/api/health 2>/dev/null || echo "000")
+          echo "Backend API health check: HTTP $API_CODE"

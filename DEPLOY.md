@@ -1,264 +1,334 @@
 # 🚀 Deployment Guide - Family Expense Tracker
 
-This guide will help you set up automatic deployment to your home server using GitHub Actions.
+Guía para configurar deploy automático a tu servidor Ubuntu con Portainer.
 
 ## 📋 Prerequisites
 
-- A GitHub repository with your code
-- A home server with:
-  - Ubuntu (or similar Linux distribution)
-  - Docker and Docker Compose installed
-  - SSH access enabled
-  - Portainer (optional, but recommended)
+- Servidor Ubuntu con Docker y Docker Compose instalados
+- Portainer instalado y corriendo
+- Acceso SSH al servidor
+- Cuenta de GitHub con este repositorio
 
-## 🔧 Step 1: Server Setup
+---
 
-### 1.1 Install Docker (if not already installed)
+## 🎯 Opciones de Deploy
 
-```bash
-# Update package index
-sudo apt update
+Tienes **dos opciones** para el deploy automático:
 
-# Install dependencies
-sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+| Opción | Descripción | Ideal para |
+|--------|-------------|------------|
+| **A. Portainer GitOps** ⭐ | Portainer monitorea el repo Git y actualiza automáticamente | **Recomendado** - Menos configuración, todo en Portainer |
+| **B. GitHub Actions + SSH** | GitHub Actions se conecta vía SSH y ejecuta docker compose | Si prefieres control desde GitHub |
+| **C. GitHub Actions + Portainer Webhook** | Build en GH Actions + trigger webhook a Portainer | Si quieres builds en cloud y deploy en Portainer |
 
-# Add Docker GPG key
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+---
 
-# Add Docker repository
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+# Opción A: Portainer GitOps (Recomendado) ⭐
 
-# Install Docker
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+Portainer se encarga de todo automáticamente. Cuando haces push a `main`, Portainer detecta el cambio y redeploya.
 
-# Add your user to docker group (to run docker without sudo)
-sudo usermod -aG docker $USER
+## Paso 1: Configurar el Stack en Portainer
 
-# Apply group changes (logout and login again, or use):
-newgrp docker
+1. Accede a tu Portainer (http://TU_SERVIDOR:9000)
+2. Ve a **Stacks** → **Add Stack**
+3. Configura:
+
+| Campo | Valor |
+|-------|-------|
+| Name | `family-expense-tracker` |
+| Build method | **Repository** |
+| Repository URL | `https://github.com/leosauzza/family-expense-tracker` |
+| Repository reference | `refs/heads/main` |
+| Compose path | `docker-compose.prod.yml` |
+| Automatic updates | ✅ **Enabled** |
+| Fetch interval | `5m` (o el que prefieras) |
+
+4. En **Environment variables**, agrega todas las variables de tu archivo `.env`:
+
 ```
-
-### 1.2 Create Application Directory
-
-```bash
-# Create directory for the application
-sudo mkdir -p /opt/family-expense-tracker
-sudo chown $USER:$USER /opt/family-expense-tracker
-
-# Clone your repository
-cd /opt/family-expense-tracker
-git clone https://github.com/leosauzza/family-expense-tracker.git .
-```
-
-### 1.3 Create Environment File
-
-```bash
-cd /opt/family-expense-tracker
-
-# Copy example environment file
-cp .env.example .env
-
-# Edit with your secure passwords
-nano .env
-```
-
-**Important:** Change the default password to something secure!
-
-```env
 POSTGRES_DB=expensetracker
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_secure_password_here
-ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=expensetracker;Username=postgres;Password=your_secure_password_here
+POSTGRES_PASSWORD=tu_password_segura
+ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=expensetracker;Username=postgres;Password=tu_password_segura
 ```
 
-### 1.4 Setup SSH Access for GitHub Actions
+5. Click **Deploy the stack**
 
-Generate an SSH key pair that GitHub Actions will use to access your server:
+## Paso 2: Configurar Acceso al Repo (si es privado)
 
-```bash
-# On your local machine or server
-ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_actions_deploy
+Si tu repo es privado, necesitas configurar autenticación:
 
-# Copy public key to authorized_keys
-cat ~/.ssh/github_actions_deploy.pub >> ~/.ssh/authorized_keys
+1. Ve a **Settings** → **Authentication** en Portainer
+2. O al crear el stack, expande **Authentication** y agrega:
+   - Username: tu usuario de GitHub
+   - Personal Access Token: [crear uno aquí](https://github.com/settings/tokens) con permiso `repo`
 
-# Display private key (you'll need to copy this to GitHub)
-cat ~/.ssh/github_actions_deploy
-```
+## Paso 3: Verificar Deploy Automático
 
-**Important:** Keep the private key secure! Never commit it to the repository.
-
-## 🔐 Step 2: GitHub Configuration
-
-### 2.1 Add Repository Secrets
-
-Go to your GitHub repository → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
-
-Add these secrets:
-
-| Secret Name | Value | Description |
-|------------|-------|-------------|
-| `SERVER_IP` | `192.168.1.100` | Your server's IP address (local network) |
-| `SERVER_USER` | `ubuntu` | Your server username |
-| `SSH_PRIVATE_KEY` | `-----BEGIN OPENSSH PRIVATE KEY-----...` | The private key from Step 1.4 |
-
-### 2.2 Push Code to GitHub
+Haz un cambio en el código y push a `main`:
 
 ```bash
 git add .
-git commit -m "Add production deployment configuration"
+git commit -m "Test deploy automático"
 git push origin main
 ```
 
-## 🚀 Step 3: First Deploy
+En ~5 minutos, Portainer debería detectar el cambio y redeployar automáticamente.
 
-The deployment should trigger automatically when you push to the `main` branch. You can also trigger it manually:
+---
 
-### 3.1 Check GitHub Actions
+# Opción B: GitHub Actions + SSH
 
-Go to your GitHub repository → **Actions** tab
+GitHub Actions se conecta a tu servidor vía SSH y ejecuta los comandos de deploy.
 
-You should see the "Deploy to Home Server" workflow running.
+## Paso 1: Generar SSH Key
 
-### 3.2 Verify on Server
-
-On your server, check if containers are running:
+En tu servidor Ubuntu:
 
 ```bash
+# Generar key pair
+ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/github_actions
+
+# Agregar a authorized_keys
+cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
+
+# Ver la private key (la necesitarás en GitHub)
+cat ~/.ssh/github_actions
+```
+
+## Paso 2: Configurar Secrets en GitHub
+
+Ve a tu repo en GitHub → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+
+| Secret Name | Valor |
+|-------------|-------|
+| `SERVER_IP` | IP de tu servidor (ej: `192.168.1.100`) |
+| `SERVER_USER` | Usuario SSH (ej: `ubuntu`) |
+| `SSH_PRIVATE_KEY` | El contenido completo de `~/.ssh/github_actions` |
+
+## Paso 3: Preparar Directorio en el Servidor
+
+```bash
+# Crear directorio para la app
+sudo mkdir -p /opt/family-expense-tracker
+sudo chown $USER:$USER /opt/family-expense-tracker
+
+# Crear archivo .env
 cd /opt/family-expense-tracker
-docker compose -f docker-compose.prod.yml ps
+cp .env.example .env
+nano .env  # Editar con tus valores
 ```
 
-You should see:
-- `expense-tracker-db` (PostgreSQL)
-- `expense-tracker-backend` (.NET API)
-- `expense-tracker-pdf-parser` (Node.js - internal only)
-- `expense-tracker-frontend` (Nginx)
+## Paso 4: Probar Deploy
 
-### 3.3 Access Your Application
+Haz push a `main` o ejecuta manualmente el workflow en GitHub → Actions → "Deploy to Home Server (SSH)"
 
-Open your browser and go to:
-- **Frontend:** `http://YOUR_SERVER_IP:3500`
-- **API:** `http://YOUR_SERVER_IP:3501`
-- **Swagger:** `http://YOUR_SERVER_IP:3501/swagger`
+---
 
-## 🔒 Security Considerations
+# Opción C: GitHub Actions + Portainer Webhook
 
-### PDF Parser is Internal Only
+Build de imágenes en GitHub Actions + trigger webhook a Portainer para redeploy.
 
-The PDF parser service is **not exposed** to the internet. It's only accessible within the Docker network by the backend service via `http://pdf-parser:3001`.
+## Paso 1: Configurar GitHub Container Registry (GHCR)
 
-### Database is Internal Only
+Las imágenes se publicarán automáticamente en GHCR. No necesitas configurar nada extra, usa el `GITHUB_TOKEN` automático.
 
-PostgreSQL is not exposed to the host. Only services within the Docker network can access it.
+## Paso 2: Crear Stack en Portainer con Webhook
 
-### Use Strong Passwords
+1. En Portainer: **Stacks** → **Add Stack**
+2. Build method: **Web editor**
+3. Pega el contenido de `docker-compose.portainer.yml`:
 
-Make sure to use strong passwords in your `.env` file, especially for PostgreSQL.
+```yaml
+version: '3.8'
 
-## 🔄 How It Works
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - expense-tracker-network
+    restart: unless-stopped
 
-1. **You push code** to the `main` branch
-2. **GitHub Actions** triggers the workflow
-3. **SSH into your server** using the stored private key
-4. **Pull latest changes** from GitHub
-5. **Build and deploy** using `docker-compose.prod.yml`
-6. **Clean up** unused Docker images
+  backend:
+    image: ghcr.io/leosauzza/expense-tracker-backend:latest
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
+    ports:
+      - "3501:8080"
+    networks:
+      - expense-tracker-network
+    restart: unless-stopped
 
-## 🛠️ Troubleshooting
+  pdf-parser:
+    image: ghcr.io/leosauzza/expense-tracker-pdf-parser:latest
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+    networks:
+      - expense-tracker-network
+    restart: unless-stopped
 
-### Container not starting
+  frontend:
+    image: ghcr.io/leosauzza/expense-tracker-frontend:latest
+    ports:
+      - "3500:80"
+    networks:
+      - expense-tracker-network
+    restart: unless-stopped
 
-```bash
-# Check logs
-docker compose -f docker-compose.prod.yml logs [service-name]
+volumes:
+  postgres_data:
 
-# Example:
-docker compose -f docker-compose.prod.yml logs backend
+networks:
+  expense-tracker-network:
 ```
 
-### Permission denied
+4. Agrega las environment variables
+5. **Importante**: Habilita **Webhook** en el stack (aparece después de crearlo)
+6. Copia la URL del webhook (ej: `http://portainer:9000/api/stacks/webhook/abc-123`)
 
-Make sure your user is in the docker group:
+## Paso 3: Configurar Secret del Webhook
+
+En GitHub → Settings → Secrets:
+
+| Secret Name | Valor |
+|-------------|-------|
+| `PORTAINER_WEBHOOK_URL` | URL completa del webhook que copiaste |
+
+## Paso 4: Configurar GHCR en Portainer
+
+Para que Portainer pueda pull imágenes de GitHub Container Registry:
+
+1. En Portainer: **Registries** → **Add registry**
+2. Type: **Custom**
+3. Name: `ghcr.io`
+4. Registry URL: `ghcr.io`
+5. Authentication: ON
+6. Username: tu usuario de GitHub
+7. Password: Personal Access Token con permisos `read:packages`
+
+## Paso 5: Probar
+
+Haz push a `main`. El workflow:
+1. Hará build de las imágenes
+2. Las subirá a GHCR
+3. Llamará al webhook de Portainer
+4. Portainer hará redeploy con las nuevas imágenes
+
+---
+
+## 🔧 Preparación Inicial del Servidor
+
+Independientemente de la opción que elijas, necesitas:
+
+### 1. Instalar Docker y Docker Compose
+
 ```bash
+# Actualizar sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar dependencias
+sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+# Agregar repo de Docker
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Instalar Docker
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# Agregar usuario al grupo docker
 sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-### Database connection errors
+### 2. Instalar Portainer
 
-Verify `.env` file exists and has correct values:
 ```bash
-cat /opt/family-expense-tracker/.env
+# Crear volumen para Portainer
+docker volume create portainer_data
+
+# Ejecutar Portainer
+docker run -d \
+  -p 8000:8000 \
+  -p 9443:9443 \
+  -p 9000:9000 \
+  --name portainer \
+  --restart=unless-stopped \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  portainer/portainer-ce:latest
 ```
 
-### Port already in use
+Accede a Portainer en: `https://TU_SERVIDOR:9443` (o `http://TU_SERVIDOR:9000`)
 
-If ports 3500 or 3501 are already in use:
+---
+
+## 📁 Archivos del Proyecto
+
+| Archivo | Descripción |
+|---------|-------------|
+| `docker-compose.yml` | Configuración de desarrollo local |
+| `docker-compose.prod.yml` | Configuración producción (build local) |
+| `docker-compose.portainer.yml` | Configuración usando imágenes GHCR |
+| `.github/workflows/deploy.yml` | Deploy vía SSH (Opción B) |
+| `.github/workflows/build-and-push.yml` | Build + push a GHCR (Opción C) |
+
+---
+
+## 🛠️ Troubleshooting
+
+### "Permission denied" en GitHub Actions
+
 ```bash
-# Find what's using the port
+# En el servidor, verificar que la key está en authorized_keys
+cat ~/.ssh/authorized_keys
+
+# Verificar permisos
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+### Portainer no puede pull imágenes de GHCR
+
+1. Verifica que creaste el Personal Access Token con permiso `read:packages`
+2. En Portainer: **Registries** → Verifica que la registry `ghcr.io` está configurada
+3. Prueba hacer login manual: `docker login ghcr.io -u TU_USUARIO`
+
+### Variables de entorno no aplican
+
+En Portainer, después de cambiar variables:
+1. Ve al stack
+2. Click **Editor** tab
+3. Click **Update the stack**
+4. Selecciona **Re-pull image and redeploy**
+
+### Puertos ocupados
+
+```bash
+# Ver qué usa el puerto
 sudo lsof -i :3500
 sudo lsof -i :3501
 
-# Stop the service or change ports in docker-compose.prod.yml
+# Cambiar puertos en las environment variables del stack:
+FRONTEND_PORT=3600
+BACKEND_PORT=3601
 ```
 
-## 📱 Access from Other Devices
+---
 
-Since this is a local deployment, devices on your network can access it using the server's IP address:
+## 🎉 ¡Listo!
 
-```
-http://192.168.1.100  (or your server's IP)
-```
+Elige la opción que prefieras:
 
-To find your server's IP:
-```bash
-hostname -I
-```
-
-## 🔄 Manual Deploy (if needed)
-
-If you need to deploy manually without GitHub Actions:
-
-```bash
-cd /opt/family-expense-tracker
-./deploy.sh
-```
-
-Or manually:
-```bash
-cd /opt/family-expense-tracker
-git pull origin main
-docker compose -f docker-compose.prod.yml down
-docker compose -f docker-compose.prod.yml up -d --build
-```
-
-## 📊 Portainer Integration (Optional)
-
-If you're using Portainer:
-
-1. Go to **Stacks** in Portainer
-2. Click **Add Stack**
-3. Name: `family-expense-tracker`
-4. Build method: **Repository**
-5. Repository URL: `https://github.com/leosauzza/family-expense-tracker`
-6. Compose path: `docker-compose.prod.yml`
-7. Add environment variables from your `.env` file
-8. Click **Deploy the stack**
-
-This gives you a nice GUI to manage your containers!
-
-## 📝 Files Created
-
-- `docker-compose.prod.yml` - Production Docker Compose configuration
-- `.github/workflows/deploy.yml` - GitHub Actions workflow
-- `.env.example` - Example environment variables
-- `deploy.sh` - Manual deploy script
-- `DEPLOY.md` - This guide
-
-## 🎉 Done!
-
-Your application should now be running on your home server with automatic deployments!
-
-Every time you push to `main`, GitHub Actions will automatically deploy the changes to your server.
+- **Opción A (GitOps)**: Más simple, todo en Portainer
+- **Opción B (SSH)**: Control total desde GitHub
+- **Opción C (Webhook)**: Build rápido en cloud, deploy en Portainer
