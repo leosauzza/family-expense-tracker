@@ -138,8 +138,7 @@ public class CreditCardImportController : ControllerBase
                 switch (classification.ClassificationType.ToLower())
                 {
                     case "personal":
-                        await CreateFixedExpense(extracted, monthlyData.Id);
-                        break;
+                        continue;
 
                     case "shared":
                         await CreateSharedExpense(extracted, monthlyData.Id, classification);
