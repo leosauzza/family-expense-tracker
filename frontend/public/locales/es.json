@@ -31,6 +31,10 @@
     "listSelector": {
       "title": "Seleccionar tipo de lista",
       "description": "¿Qué tipo de gastos querés agregar?",
+      "systemShared": {
+        "title": "Gastos compartidos con mi pareja",
+        "description": "Gastos compartidos entre los dos usuarios del sistema (ej: cuenta, internet)"
+      },
       "externalThirdParty": {
         "title": "Gastos 100% de gente fuera del sistema",
         "description": "Gastos que pagaste vos pero son completamente de alguien que no está en el sistema (ej: amigos, familia externa)"
@@ -76,6 +80,27 @@
       "externalShared": "Compartidos con externos (50%)",
       "formula": "Fórmula: ((Pagados por mí + Pagados por otros) / {count}) - Pagados por mí",
       "noThirdParty": "No hay gastos de terceros"
+    },
+    "coupleBalance": {
+      "title": "Balance de Pareja",
+      "userOwesUser": "{nameA} le debe a {nameB}",
+      "balanced": "¡Están a mano!",
+      "sharedExpensesSplit": "Gastos compartidos (divididos)",
+      "personalExpenses": "Gastos personales del otro",
+      "detail": "Ver detalle",
+      "hideDetail": "Ocultar detalle"
+    },
+    "sharedExpenseList": {
+      "owner": "",
+      "noOwner": "Compartido",
+      "paidQuestion": "✅?",
+      "forUser": "Para: {name}",
+      "withExternal": "Con: {parties}",
+      "splitAmongAll": "Dividido entre todos los usuarios del sistema",
+      "empty": "No hay gastos en esta lista",
+      "systemUserTitle": "Gastos pagados por mí para {name}",
+      "externalSharedTitle": "Gastos compartidos con externos",
+      "systemSharedTitle": "Gastos compartidos del sistema"
     },
     "copyFromPrevious": {
       "title": "Copiar datos",

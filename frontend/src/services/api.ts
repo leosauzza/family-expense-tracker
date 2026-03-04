@@ -8,16 +8,16 @@ function getBaseUrl(): string {
   if (API_URL.startsWith('http')) {
     return API_URL;
   }
-  
+
   if (API_URL.startsWith('/')) {
-    // Use same hostname as frontend, but port 3501
+    // Use same hostname as frontend, but port 8080
     const hostname = window.location.hostname;
-    return `http://${hostname}:3501${API_URL}`;
+    return `http://${hostname}:8080${API_URL}`;
   }
-  
-  // Default: use same host, port 3501
+
+  // Default: use same host, port 8080
   const hostname = window.location.hostname;
-  return `http://${hostname}:3501/api`;
+  return `http://${hostname}:8080/api`;
 }
 
 export async function fetchApi<T>(

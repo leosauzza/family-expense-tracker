@@ -4,7 +4,7 @@ import styles from './ListTypeSelectorModal.module.css';
 import { Button } from '../common/Button';
 import { useTranslation } from '../../hooks/useTranslation';
 
-export type ListType = 'externalThirdParty' | 'systemUser' | 'externalShared';
+export type ListType = 'externalThirdParty' | 'systemUser' | 'externalShared' | 'systemShared';
 
 interface ListTypeSelectorModalProps {
   isOpen: boolean;
@@ -38,6 +38,12 @@ export function ListTypeSelectorModal({
   const otherUsers = systemUsers.filter(u => u.id !== currentUserId);
 
   const options: ListOption[] = [
+    {
+      type: 'systemShared',
+      icon: <Users size={20} />,
+      titleKey: 'dashboard.listSelector.systemShared.title',
+      descriptionKey: 'dashboard.listSelector.systemShared.description'
+    },
     {
       type: 'externalThirdParty',
       icon: <UserPlus size={20} />,

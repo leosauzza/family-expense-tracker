@@ -5,11 +5,12 @@ import styles from './DashboardPage.module.css';
 import { Header } from '../components/layout/Header';
 import { WalletCard } from '../components/expenses/WalletCard';
 import { CalculationDisplay } from '../components/expenses/CalculationDisplay';
-import { TheyOweMe } from '../components/expenses/TheyOweMe';
+import { CoupleBalance } from '../components/expenses/CoupleBalance';
 import { ExpenseList } from '../components/expenses/ExpenseList';
 import { ThirdPartyList } from '../components/expenses/ThirdPartyList';
 import { SharedExpenseList } from '../components/expenses/SharedExpenseList';
-import { ListTypeSelectorModal, type ListType } from '../components/expenses/ListTypeSelectorModal';
+import { ListTypeSelectorModal } from '../components/expenses/ListTypeSelectorModal';
+import type { ListType } from '../components/expenses/ListTypeSelectorModal';
 import { ExpenseModal } from '../components/expenses/ExpenseModal';
 import { SortableExpenseList, DragOverlayItem } from '../components/expenses/SortableExpenseList';
 import { Button } from '../components/common/Button';
@@ -54,8 +55,9 @@ export function DashboardPage() {
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [showImportWizard, setShowImportWizard] = useState(false);
   const [showListTypeSelector, setShowListTypeSelector] = useState(false);
-  const [allUsers, setAllUsers] = useState<{ id: string; name: string }[]>([]);
+  const [allUsers, setAllUsers] = useState<{ id: string; name: string; initial: string; color: string }[]>([]);
   const [isCalculationExpanded, setIsCalculationExpanded] = useState(false);
+  const [isCoupleBalanceExpanded, setIsCoupleBalanceExpanded] = useState(false);
   const [virtualListConfigs, setVirtualListConfigs] = useState<VirtualListConfig[]>([]);
   const [showSharedExpenseModal, setShowSharedExpenseModal] = useState(false);
   const [sharedExpenseModalConfig, setSharedExpenseModalConfig] = useState<{
@@ -82,6 +84,10 @@ export function DashboardPage() {
 
   const toggleCalculation = useCallback(() => {
     setIsCalculationExpanded(prev => !prev);
+  }, []);
+
+  const toggleCoupleBalance = useCallback(() => {
+    setIsCoupleBalanceExpanded(prev => !prev);
   }, []);
 
   // Parse year/month from URL or use current
@@ -293,12 +299,30 @@ export function DashboardPage() {
   };
 
   const handleListTypeSelected = async (
-    type: ListType, 
+    type: ListType,
     config: { targetUserId?: string; externalParties?: string[] }
   ) => {
     if (!monthlyData || !currentUser) return;
 
     switch (type) {
+      case 'systemShared': {
+        // Create a new shared expense for couple (no virtual list needed)
+        const newExpense = await sharedExpenseService.create({
+          detail: '',
+          amountARS: 0,
+          amountUSD: 0,
+          isPaid: false,
+          monthlyDataId: monthlyData.id,
+          paidByUserId: currentUser.id,
+          expenseType: 'SplitWithAllSystemUsers'
+        });
+        setMonthlyData({
+          ...monthlyData,
+          sharedExpensesPaidByUser: [...monthlyData.sharedExpensesPaidByUser, newExpense]
+        });
+        break;
+      }
+
       case 'externalThirdParty':
         // Create traditional third party list
         const newList = await thirdPartyService.createList({
@@ -622,6 +646,62 @@ export function DashboardPage() {
     }
   }, [monthlyData, groupedSharedExpenses, sharedByOthers]);
 
+  const otherUser = useMemo(() => {
+    if (!viewedUser) return undefined;
+    return allUsers.find(u => u.id !== viewedUser.id);
+  }, [allUsers, viewedUser]);
+
+  const otherUserName = otherUser?.name || '';
+
+  const usersMap = useMemo(() => {
+    return new Map(allUsers.map(u => [u.id, u]));
+  }, [allUsers]);
+
+  const coupleBalanceData = useMemo(() => {
+    const fallbackUser: { id: string; name: string; initial: string; color: string } = {
+      id: '',
+      name: '',
+      initial: '',
+      color: ''
+    };
+
+    if (!viewedUser || !otherUser || !monthlyData) {
+      return {
+        userAShared: [],
+        userBShared: [],
+        userAPaidForB: [],
+        userBPaidForA: [],
+        userA: viewedUser,
+        userB: fallbackUser
+      };
+    }
+
+    const viewedUserSharedForAll = monthlyData.sharedExpensesPaidByUser.filter(e =>
+      (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers'
+    );
+    const viewedUserPaidForOther = monthlyData.sharedExpensesPaidByUser.filter(e =>
+      e.expenseType === 'ForSpecificSystemUser' && e.targetUserId === otherUser?.id
+    );
+
+    const otherUserSharedForAll = sharedByOthers.filter(e =>
+      (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers'
+    );
+    const otherUserPaidForViewedUser = sharedByOthers.filter(e =>
+      e.expenseType === 'ForSpecificSystemUser' && e.targetUserId === viewedUser.id
+    );
+
+    const userB = otherUser ? otherUser : fallbackUser;
+
+    return {
+      userAShared: viewedUserSharedForAll,
+      userBShared: otherUserSharedForAll,
+      userAPaidForB: viewedUserPaidForOther,
+      userBPaidForA: otherUserPaidForViewedUser,
+      userA: viewedUser,
+      userB: userB
+    };
+  }, [viewedUser, otherUser, monthlyData, sharedByOthers]);
+
   if (isLoading || !monthlyData || !viewedUser) {
     return (
       <div className={styles.loading}>
@@ -631,8 +711,6 @@ export function DashboardPage() {
   }
 
   const calculation = calculateFinalBalance(monthlyData, sharedByOthers, allUsers.length || 2);
-
-  const otherUserName = allUsers.find(u => u.id !== viewedUser.id)?.name || '';
 
   // Function to render a list by its ID
   const renderListById = (listId: string): React.ReactNode => {
@@ -660,6 +738,8 @@ export function DashboardPage() {
           listType="systemShared"
           expenses={groupedSharedExpenses.systemShared}
           isReadOnly={!isViewingOwnData}
+          currentUserId={currentUser?.id}
+          users={usersMap}
           onAdd={(expense) => handleAddSharedExpense({ ...expense, expenseType: 'SplitWithAllSystemUsers' })}
           onUpdate={handleUpdateSharedExpense}
           onDelete={handleDeleteSharedExpense}
@@ -681,8 +761,10 @@ export function DashboardPage() {
           targetUserName={group.targetUserName}
           expenses={group.expenses}
           isReadOnly={!isViewingOwnData}
-          onAdd={(expense) => handleAddSharedExpense({ 
-            ...expense, 
+          currentUserId={currentUser?.id}
+          users={usersMap}
+          onAdd={(expense) => handleAddSharedExpense({
+            ...expense,
             expenseType: 'ForSpecificSystemUser',
             targetUserId: group.targetUserId
           })}
@@ -706,8 +788,10 @@ export function DashboardPage() {
           externalParties={group.externalParties}
           expenses={group.expenses}
           isReadOnly={!isViewingOwnData}
-          onAdd={(expense) => handleAddSharedExpense({ 
-            ...expense, 
+          currentUserId={currentUser?.id}
+          users={usersMap}
+          onAdd={(expense) => handleAddSharedExpense({
+            ...expense,
             expenseType: 'SplitWithExternalParties',
             externalParties: group.externalParties
           })}
@@ -783,14 +867,18 @@ export function DashboardPage() {
             />
           </div>
           <div className={styles.theyOweSection}>
-            <TheyOweMe
-              thirdPartyLists={monthlyData.thirdPartyExpenseLists}
-              sharedByUser={monthlyData.sharedExpensesPaidByUser}
-              sharedByOthers={sharedByOthers}
-              totalSystemUsers={allUsers.length || 2}
-              isExpanded={isCalculationExpanded}
-              onToggle={toggleCalculation}
-            />
+            {otherUser && (
+              <CoupleBalance
+                userAShared={coupleBalanceData.userAShared}
+                userBShared={coupleBalanceData.userBShared}
+                userAPaidForB={coupleBalanceData.userAPaidForB}
+                userBPaidForA={coupleBalanceData.userBPaidForA}
+                userA={coupleBalanceData.userA as { id: string; name: string; initial: string; color: string }}
+                userB={coupleBalanceData.userB as { id: string; name: string; initial: string; color: string }}
+                isExpanded={isCoupleBalanceExpanded}
+                onToggle={toggleCoupleBalance}
+              />
+            )}
           </div>
         </div>
 
@@ -816,14 +904,14 @@ export function DashboardPage() {
               ))}
             </SortableContext>
 
-            {/* Add Shared Expense Button (when no shared expenses exist) */}
-            {monthlyData.sharedExpensesPaidByUser.length === 0 && isViewingOwnData && (
+            {/* Add Shared Expense Button */}
+            {groupedSharedExpenses.systemShared.length >= 0 && isViewingOwnData && (
               <Button
                 variant="secondary"
-                onClick={() => handleAddSharedExpense({ 
-                  detail: '', 
-                  amountARS: 0, 
-                  amountUSD: 0, 
+                onClick={() => handleAddSharedExpense({
+                  detail: '',
+                  amountARS: 0,
+                  amountUSD: 0,
                   isPaid: false,
                   monthlyDataId: monthlyData.id,
                   paidByUserId: currentUser?.id || '',

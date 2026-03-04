@@ -31,6 +31,10 @@
     "listSelector": {
       "title": "Select list type",
       "description": "What type of expenses do you want to add?",
+      "systemShared": {
+        "title": "Expenses shared with my partner",
+        "description": "Expenses shared between the two system users (e.g., utilities, internet)"
+      },
       "externalThirdParty": {
         "title": "Expenses 100% for people outside the system",
         "description": "Expenses you paid but are completely for someone not in the system (e.g., friends, external family)"
@@ -76,6 +80,27 @@
       "externalShared": "Shared with external (50%)",
       "formula": "Formula: ((Paid by me + Paid by others) / {count}) - Paid by me",
       "noThirdParty": "No third party expenses"
+    },
+    "coupleBalance": {
+      "title": "Couple Balance",
+      "userOwesUser": "{nameA} owes {nameB}",
+      "balanced": "All settled!",
+      "sharedExpensesSplit": "Shared expenses (split)",
+      "personalExpenses": "Other's personal expenses",
+      "detail": "Show detail",
+      "hideDetail": "Hide detail"
+    },
+    "sharedExpenseList": {
+      "owner": "",
+      "noOwner": "Shared",
+      "paidQuestion": "✅?",
+      "forUser": "For: {name}",
+      "withExternal": "With: {parties}",
+      "splitAmongAll": "Split among all system users",
+      "empty": "No expenses in this list",
+      "systemUserTitle": "Expenses I paid for {name}",
+      "externalSharedTitle": "Expenses shared with external parties",
+      "systemSharedTitle": "System shared expenses"
     },
     "copyFromPrevious": {
       "title": "Copy data",

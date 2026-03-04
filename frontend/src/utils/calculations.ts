@@ -189,3 +189,52 @@ export function calculateTheyOweMeDetailed(
     totalUSD
   };
 }
+
+export interface CoupleBalanceResult {
+  userAShare: { ars: number; usd: number };
+  userBShare: { ars: number; usd: number };
+  userAPaidForB: { ars: number; usd: number };
+  userBPaidForA: { ars: number; usd: number };
+  finalBalance: { ars: number; usd: number };
+  userAOwes: boolean;
+}
+
+export function calculateCoupleBalance(
+  userAShared: SharedExpense[],
+  userBShared: SharedExpense[],
+  userAPaidForB: SharedExpense[],
+  userBPaidForA: SharedExpense[]
+): CoupleBalanceResult {
+  const userASharedTotal = userAShared
+    .filter(e => !e.isPaid)
+    .reduce((sum, e) => ({ ars: sum.ars + e.amountARS, usd: sum.usd + e.amountUSD }), { ars: 0, usd: 0 });
+
+  const userBSharedTotal = userBShared
+    .filter(e => !e.isPaid)
+    .reduce((sum, e) => ({ ars: sum.ars + e.amountARS, usd: sum.usd + e.amountUSD }), { ars: 0, usd: 0 });
+
+  const userAPaidForBTotal = userAPaidForB
+    .filter(e => !e.isPaid)
+    .reduce((sum, e) => ({ ars: sum.ars + e.amountARS, usd: sum.usd + e.amountUSD }), { ars: 0, usd: 0 });
+
+  const userBPaidForATotal = userBPaidForA
+    .filter(e => !e.isPaid)
+    .reduce((sum, e) => ({ ars: sum.ars + e.amountARS, usd: sum.usd + e.amountUSD }), { ars: 0, usd: 0 });
+
+  const userAOwesFromShared = userASharedTotal.ars / 2;
+  const userBOwesFromShared = userBSharedTotal.ars / 2;
+
+  const balanceARS = (userAOwesFromShared - userBOwesFromShared) + (userAPaidForBTotal.ars - userBPaidForATotal.ars);
+  const balanceUSD = (userASharedTotal.usd / 2 - userBSharedTotal.usd / 2) + (userAPaidForBTotal.usd - userBPaidForATotal.usd);
+
+  const userAOwes = balanceARS < 0 || (balanceARS === 0 && balanceUSD < 0);
+
+  return {
+    userAShare: { ars: userASharedTotal.ars / 2, usd: userASharedTotal.usd / 2 },
+    userBShare: { ars: userBSharedTotal.ars / 2, usd: userBSharedTotal.usd / 2 },
+    userAPaidForB: userAPaidForBTotal,
+    userBPaidForA: userBPaidForATotal,
+    finalBalance: { ars: Math.abs(balanceARS), usd: Math.abs(balanceUSD) },
+    userAOwes
+  };
+}

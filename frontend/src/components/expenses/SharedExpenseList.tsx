@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, X, User, Users, UserCheck } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, User, Users, UserCheck } from 'lucide-react';
 import styles from './SharedExpenseList.module.css';
 import { Button } from '../common/Button';
 import { IconButton } from '../common/IconButton';
 import { ExpenseModal } from './ExpenseModal';
+import { IconChip } from '../common/IconChip';
 import { useTranslation } from '../../hooks/useTranslation';
 import { formatCurrencyARS, formatCurrencyUSD } from '../../utils/formatters';
 import type { SharedExpense, SharedExpenseType } from '../../types';
@@ -16,6 +17,8 @@ interface SharedExpenseListProps {
   targetUserName?: string;
   externalParties?: string[];
   isReadOnly?: boolean;
+  currentUserId?: string;
+  users?: Map<string, { id: string; name: string; initial: string; color: string }>;
   onAdd: (expense: Omit<SharedExpense, 'id'>) => void;
   onUpdate: (id: string, expense: Partial<SharedExpense>) => void;
   onDelete: (id: string) => void;
@@ -30,6 +33,8 @@ export function SharedExpenseList({
   targetUserName,
   externalParties,
   isReadOnly = false,
+  currentUserId,
+  users,
   onAdd,
   onUpdate,
   onDelete,
@@ -38,6 +43,35 @@ export function SharedExpenseList({
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<SharedExpense | null>(null);
+
+  const isEditable = (expense: SharedExpense): boolean => {
+    if (!currentUserId) return false;
+    if (isReadOnly) return false;
+
+    if (expense.expenseType === 'ForSpecificSystemUser') {
+      return expense.targetUserId === currentUserId || expense.paidByUserId === currentUserId;
+    }
+    if (expense.expenseType === 'SplitWithAllSystemUsers' || 
+        expense.expenseType === 'SplitWithExternalParties') {
+      return expense.paidByUserId === currentUserId;
+    }
+    return true;
+  };
+
+  const getOwner = (expense: SharedExpense) => {
+    if (!users) return null;
+
+    if (expense.expenseType === 'ForSpecificSystemUser' && expense.targetUserId) {
+      return users.get(expense.targetUserId);
+    }
+    if (expense.expenseType === 'SplitWithAllSystemUsers') {
+      return null;
+    }
+    if (expense.paidByUserId) {
+      return users.get(expense.paidByUserId);
+    }
+    return null;
+  };
 
   const getExpenseType = (): SharedExpenseType => {
     switch (listType) {
@@ -151,64 +185,68 @@ export function SharedExpenseList({
       ) : (
         <>
           <div className={styles.table}>
-            <div className={styles.tableHeader}>
+            <div className={`${styles.tableHeader} ${!users && styles.noOwnerColumn}`}>
+              {users && <div className={styles.iconColumn}><UserCheck size={16} /></div>}
               <div>{t('common.detail')}</div>
               <div>{t('common.amountARS')}</div>
               <div>{t('common.amountUSD')}</div>
-              <div>{t('common.paid')}</div>
+              <div className={styles.centerColumn}>{t('dashboard.sharedExpenseList.paidQuestion')}</div>
               {!isReadOnly && <div></div>}
             </div>
             <div className={styles.tableBody}>
-              {expenses.map((expense) => (
-                <div key={expense.id} className={styles.tableRow}>
-                  <div className={styles.detail}>{expense.detail}</div>
-                  <div className={`${styles.amount} ${styles.ars}`}>
-                    {formatCurrencyARS(expense.amountARS)}
-                  </div>
-                  <div className={`${styles.amount} ${styles.usd}`}>
-                    {expense.amountUSD > 0 ? formatCurrencyUSD(expense.amountUSD) : '-'}
-                  </div>
-                  <div className={styles.paid}>
-                    {expense.isPaid ? (
-                      <span 
-                        className={styles.paidBadge}
-                        onClick={() => !isReadOnly && onTogglePaid?.(expense.id, false)}
-                        title={!isReadOnly ? t('common.clickToChange') : undefined}
-                      >
-                        <Check size={12} />
-                        {t('common.paid')}
-                      </span>
-                    ) : (
-                      <span 
-                        className={styles.unpaidBadge}
-                        onClick={() => !isReadOnly && onTogglePaid?.(expense.id, true)}
-                        title={!isReadOnly ? t('common.clickToChange') : undefined}
-                      >
-                        <X size={12} />
-                        {t('common.pending')}
-                      </span>
+              {expenses.map((expense) => {
+                const owner = getOwner(expense);
+                const canEdit = isEditable(expense);
+
+                return (
+                  <div key={expense.id} className={`${styles.tableRow} ${!users && styles.noOwnerColumn} ${!canEdit && styles.readOnly}`}>
+                    {users && (
+                      <div className={styles.owner}>
+                        {owner ? (
+                          <div className={styles.avatar} style={{ backgroundColor: owner.color }} title={owner.name}>
+                            {owner.initial}
+                          </div>
+                        ) : (
+                          <div className={styles.sharedIndicator} title={t('dashboard.sharedExpenseList.noOwner')}>
+                            <UserCheck size={16} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className={styles.detail}>{expense.detail}</div>
+                    <div className={`${styles.amount} ${styles.ars}`}>
+                      {formatCurrencyARS(expense.amountARS)}
+                    </div>
+                    <div className={`${styles.amount} ${styles.usd}`}>
+                      {expense.amountUSD > 0 ? formatCurrencyUSD(expense.amountUSD) : '-'}
+                    </div>
+                    <div className={styles.paid}>
+                      <IconChip
+                        type={expense.isPaid ? 'paid' : 'unpaid'}
+                        onClick={() => canEdit && onTogglePaid?.(expense.id, !expense.isPaid)}
+                      />
+                    </div>
+                    {!isReadOnly && canEdit && (
+                      <div className={styles.action}>
+                        <IconButton
+                          variant="ghost"
+                          size="small"
+                          onClick={() => handleEdit(expense)}
+                        >
+                          <Edit2 size={14} />
+                        </IconButton>
+                        <IconButton
+                          variant="danger"
+                          size="small"
+                          onClick={() => onDelete(expense.id)}
+                        >
+                          <Trash2 size={14} />
+                        </IconButton>
+                      </div>
                     )}
                   </div>
-                  {!isReadOnly && (
-                    <div className={styles.action}>
-                      <IconButton
-                        variant="ghost"
-                        size="small"
-                        onClick={() => handleEdit(expense)}
-                      >
-                        <Edit2 size={14} />
-                      </IconButton>
-                      <IconButton
-                        variant="danger"
-                        size="small"
-                        onClick={() => onDelete(expense.id)}
-                      >
-                        <Trash2 size={14} />
-                      </IconButton>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
