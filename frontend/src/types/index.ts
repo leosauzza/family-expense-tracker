@@ -23,6 +23,7 @@ export type SharedExpenseType = 'SplitWithAllSystemUsers' | 'SplitWithExternalPa
 export interface SharedExpense extends Expense {
   monthlyDataId: string;
   paidByUserId: string;
+  paidByUserName?: string;
   expenseType?: SharedExpenseType;
   externalParties?: string[];
   targetUserId?: string | null;
@@ -60,7 +61,7 @@ export interface MonthlyData {
   walletAmount: number;
   dataCopiedFromPreviousMonth: boolean;
   fixedExpenses: FixedExpense[];
-  sharedExpensesPaidByUser: SharedExpense[];
+  sharedExpensesByAllUsers: SharedExpense[];
   thirdPartyExpenseLists: ThirdPartyExpenseList[];
 }
 

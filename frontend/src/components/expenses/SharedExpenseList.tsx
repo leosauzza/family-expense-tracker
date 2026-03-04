@@ -49,9 +49,9 @@ export function SharedExpenseList({
     if (isReadOnly) return false;
 
     if (expense.expenseType === 'ForSpecificSystemUser') {
-      return expense.targetUserId === currentUserId || expense.paidByUserId === currentUserId;
+      return expense.paidByUserId === currentUserId;
     }
-    if (expense.expenseType === 'SplitWithAllSystemUsers' || 
+    if (expense.expenseType === 'SplitWithAllSystemUsers' ||
         expense.expenseType === 'SplitWithExternalParties') {
       return expense.paidByUserId === currentUserId;
     }
@@ -61,9 +61,6 @@ export function SharedExpenseList({
   const getOwner = (expense: SharedExpense) => {
     if (!users) return null;
 
-    if (expense.expenseType === 'ForSpecificSystemUser' && expense.targetUserId) {
-      return users.get(expense.targetUserId);
-    }
     if (expense.expenseType === 'SplitWithAllSystemUsers') {
       return null;
     }
@@ -203,7 +200,7 @@ export function SharedExpenseList({
                     {users && (
                       <div className={styles.owner}>
                         {owner ? (
-                          <div className={styles.avatar} style={{ backgroundColor: owner.color }} title={owner.name}>
+                          <div className={styles.avatar} style={{ backgroundColor: owner.color }} title={expense.paidByUserName || owner.name}>
                             {owner.initial}
                           </div>
                         ) : (

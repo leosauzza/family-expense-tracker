@@ -9,7 +9,7 @@ public class MonthlyDataDto
     public decimal WalletAmount { get; set; }
     public bool DataCopiedFromPreviousMonth { get; set; }
     public List<FixedExpenseDto> FixedExpenses { get; set; } = new();
-    public List<SharedExpenseDto> SharedExpensesPaidByUser { get; set; } = new();
+    public List<SharedExpenseDto> SharedExpensesByAllUsers { get; set; } = new();
     public List<ThirdPartyExpenseListDto> ThirdPartyExpenseLists { get; set; } = new();
 }
 

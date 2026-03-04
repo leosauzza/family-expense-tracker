@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Infrastructure.Data;
 using ExpenseTracker.Api.DTOs;
 using ExpenseTracker.Core.Entities;
+using ExpenseTracker.Core.Enums;
 
 namespace ExpenseTracker.Api.Controllers;
 
@@ -31,6 +32,33 @@ public class MonthlyDataController : ControllerBase
             .Include(md => md.ThirdPartyExpenseLists)
                 .ThenInclude(tpl => tpl.Expenses)
             .FirstOrDefaultAsync(md => md.UserId == userId && md.Year == year && md.Month == month);
+
+        // Load ForSpecificSystemUser expenses where user is the target (paid by others)
+        var targetedExpenses = await _context.SharedExpenses
+            .AsNoTracking()
+            .Include(se => se.PaidByUser)
+            .Include(se => se.TargetUser)
+            .Include(se => se.MonthlyData)
+            .Where(se => se.ExpenseType == SharedExpenseType.ForSpecificSystemUser
+                      && se.TargetUserId == userId
+                      && se.MonthlyData.UserId != userId
+                      && se.MonthlyData.Year == year
+                      && se.MonthlyData.Month == month)
+            .ToListAsync();
+
+        // Load ForSpecificSystemUser expenses where partner is target (paid by partner for themselves)
+        // These are needed to show all shared expenses in the couple table
+        var partnerExpenses = await _context.SharedExpenses
+            .AsNoTracking()
+            .Include(se => se.PaidByUser)
+            .Include(se => se.TargetUser)
+            .Include(se => se.MonthlyData)
+            .Where(se => se.ExpenseType == SharedExpenseType.ForSpecificSystemUser
+                      && se.MonthlyData.UserId != userId
+                      && se.PaidByUserId != userId
+                      && se.MonthlyData.Year == year
+                      && se.MonthlyData.Month == month)
+            .ToListAsync();
 
         // Auto-create monthly data if not exists
         if (monthlyData == null)
@@ -64,7 +92,7 @@ public class MonthlyDataController : ControllerBase
                 .FirstAsync(md => md.Id == monthlyData.Id);
         }
 
-        var dto = MapToDto(monthlyData);
+        var dto = MapToDto(monthlyData, targetedExpenses.Concat(partnerExpenses).ToList());
         return Ok(new MonthlyDataResponse { Success = true, Data = dto });
     }
 
@@ -220,8 +248,48 @@ public class MonthlyDataController : ControllerBase
         return Ok(new MonthlyDataResponse { Success = true, Data = resultDto });
     }
 
-    private static MonthlyDataDto MapToDto(MonthlyData md)
+    private static MonthlyDataDto MapToDto(MonthlyData md, List<SharedExpense> targetedExpenses = null)
     {
+        var allSharedExpenses = md.SharedExpensesPaidByUser.Select(se => new SharedExpenseDto
+        {
+            Id = se.Id,
+            MonthlyDataId = se.MonthlyDataId,
+            PaidByUserId = se.PaidByUserId,
+            PaidByUserName = se.PaidByUser?.Name ?? "",
+            Detail = se.Detail,
+            AmountARS = se.AmountARS,
+            AmountUSD = se.AmountUSD,
+            IsPaid = se.IsPaid,
+            ExpenseType = se.ExpenseType.ToString(),
+            ExternalParties = string.IsNullOrEmpty(se.ExternalPartiesJson)
+                ? new List<string>()
+                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(se.ExternalPartiesJson)!,
+            TargetUserId = se.TargetUserId,
+            TargetUserName = se.TargetUser?.Name
+        }).ToList();
+
+        // Add targeted expenses (where user is target, not payer)
+        if (targetedExpenses != null)
+        {
+            allSharedExpenses.AddRange(targetedExpenses.Select(se => new SharedExpenseDto
+            {
+                Id = se.Id,
+                MonthlyDataId = se.MonthlyDataId,
+                PaidByUserId = se.PaidByUserId,
+                PaidByUserName = se.PaidByUser?.Name ?? "",
+                Detail = se.Detail,
+                AmountARS = se.AmountARS,
+                AmountUSD = se.AmountUSD,
+                IsPaid = se.IsPaid,
+                ExpenseType = se.ExpenseType.ToString(),
+                ExternalParties = string.IsNullOrEmpty(se.ExternalPartiesJson)
+                    ? new List<string>()
+                    : System.Text.Json.JsonSerializer.Deserialize<List<string>>(se.ExternalPartiesJson)!,
+                TargetUserId = se.TargetUserId,
+                TargetUserName = se.TargetUser?.Name
+            }));
+        }
+
         return new MonthlyDataDto
         {
             Id = md.Id,
@@ -239,22 +307,7 @@ public class MonthlyDataController : ControllerBase
                 AmountUSD = fe.AmountUSD,
                 IsPaid = fe.IsPaid
             }).ToList(),
-            SharedExpensesPaidByUser = md.SharedExpensesPaidByUser.Select(se => new SharedExpenseDto
-            {
-                Id = se.Id,
-                MonthlyDataId = se.MonthlyDataId,
-                PaidByUserId = se.PaidByUserId,
-                Detail = se.Detail,
-                AmountARS = se.AmountARS,
-                AmountUSD = se.AmountUSD,
-                IsPaid = se.IsPaid,
-                ExpenseType = se.ExpenseType.ToString(),
-                ExternalParties = string.IsNullOrEmpty(se.ExternalPartiesJson) 
-                    ? new List<string>() 
-                    : System.Text.Json.JsonSerializer.Deserialize<List<string>>(se.ExternalPartiesJson)!,
-                TargetUserId = se.TargetUserId,
-                TargetUserName = se.TargetUser?.Name
-            }).ToList(),
+            SharedExpensesByAllUsers = allSharedExpenses,
             ThirdPartyExpenseLists = md.ThirdPartyExpenseLists.Select(tpl => new ThirdPartyExpenseListDto
             {
                 Id = tpl.Id,

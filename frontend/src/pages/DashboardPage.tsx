@@ -142,9 +142,9 @@ export function DashboardPage() {
 
   const isNewMonthData = (data: MonthlyData): boolean => {
     // If wallet is 0 and there are no expenses, consider it new
-    return data.walletAmount === 0 && 
-           data.fixedExpenses.length === 0 && 
-           data.sharedExpensesPaidByUser.length === 0 &&
+    return data.walletAmount === 0 &&
+           data.fixedExpenses.length === 0 &&
+           data.sharedExpensesByAllUsers.length === 0 &&
            data.thirdPartyExpenseLists.length === 0;
   };
 
@@ -230,15 +230,15 @@ export function DashboardPage() {
     });
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesPaidByUser: [...monthlyData.sharedExpensesPaidByUser, newExpense]
+      sharedExpensesByAllUsers: [...monthlyData.sharedExpensesByAllUsers, newExpense]
     });
   };
 
-  const handleAddSharedExpenseFromModal = async (expenseData: { 
-    detail: string; 
-    amountARS: number; 
-    amountUSD: number; 
-    isPaid: boolean 
+  const handleAddSharedExpenseFromModal = async (expenseData: {
+    detail: string;
+    amountARS: number;
+    amountUSD: number;
+    isPaid: boolean
   }) => {
     if (!monthlyData || !currentUser || !sharedExpenseModalConfig) return;
 
@@ -250,15 +250,11 @@ export function DashboardPage() {
       targetUserId: sharedExpenseModalConfig.targetUserId,
       externalParties: sharedExpenseModalConfig.externalParties
     });
-
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesPaidByUser: [...monthlyData.sharedExpensesPaidByUser, newExpense]
+      sharedExpensesByAllUsers: [...monthlyData.sharedExpensesByAllUsers, newExpense]
     });
-
-    // Close modal and reset config
     setShowSharedExpenseModal(false);
-    setSharedExpenseModalConfig(null);
   };
 
   const handleUpdateSharedExpense = async (id: string, expense: Partial<SharedExpense>) => {
@@ -266,7 +262,7 @@ export function DashboardPage() {
     await sharedExpenseService.update(id, expense);
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesPaidByUser: monthlyData.sharedExpensesPaidByUser.map(e => 
+      sharedExpensesByAllUsers: monthlyData.sharedExpensesByAllUsers.map(e =>
         e.id === id ? { ...e, ...expense } : e
       )
     });
@@ -277,7 +273,7 @@ export function DashboardPage() {
     await sharedExpenseService.delete(id);
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesPaidByUser: monthlyData.sharedExpensesPaidByUser.filter(e => e.id !== id)
+      sharedExpensesByAllUsers: monthlyData.sharedExpensesByAllUsers.filter(e => e.id !== id)
     });
   };
 
@@ -286,7 +282,7 @@ export function DashboardPage() {
     await sharedExpenseService.togglePaid(id, isPaid);
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesPaidByUser: monthlyData.sharedExpensesPaidByUser.map(e => 
+      sharedExpensesByAllUsers: monthlyData.sharedExpensesByAllUsers.map(e =>
         e.id === id ? { ...e, isPaid } : e
       )
     });
@@ -318,7 +314,7 @@ export function DashboardPage() {
         });
         setMonthlyData({
           ...monthlyData,
-          sharedExpensesPaidByUser: [...monthlyData.sharedExpensesPaidByUser, newExpense]
+          sharedExpensesByAllUsers: [...monthlyData.sharedExpensesByAllUsers, newExpense]
         });
         break;
       }
@@ -477,7 +473,7 @@ export function DashboardPage() {
       }
     });
 
-    monthlyData.sharedExpensesPaidByUser.forEach(expense => {
+    monthlyData.sharedExpensesByAllUsers.forEach(expense => {
       const type = expense.expenseType || 'SplitWithAllSystemUsers';
       
       switch (type) {
@@ -676,18 +672,23 @@ export function DashboardPage() {
       };
     }
 
-    const viewedUserSharedForAll = monthlyData.sharedExpensesPaidByUser.filter(e =>
-      (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers'
+    const viewedUserSharedForAll = monthlyData.sharedExpensesByAllUsers.filter(e =>
+      (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers' &&
+      e.paidByUserId === viewedUser.id
     );
-    const viewedUserPaidForOther = monthlyData.sharedExpensesPaidByUser.filter(e =>
-      e.expenseType === 'ForSpecificSystemUser' && e.targetUserId === otherUser?.id
+    const viewedUserPaidForOther = monthlyData.sharedExpensesByAllUsers.filter(e =>
+      e.expenseType === 'ForSpecificSystemUser' &&
+      e.paidByUserId === viewedUser.id &&
+      e.targetUserId === otherUser?.id
     );
 
     const otherUserSharedForAll = sharedByOthers.filter(e =>
       (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers'
     );
-    const otherUserPaidForViewedUser = sharedByOthers.filter(e =>
-      e.expenseType === 'ForSpecificSystemUser' && e.targetUserId === viewedUser.id
+    const otherUserPaidForViewedUser = monthlyData.sharedExpensesByAllUsers.filter(e =>
+      e.expenseType === 'ForSpecificSystemUser' &&
+      e.paidByUserId !== viewedUser.id &&
+      e.targetUserId === viewedUser.id
     );
 
     const userB = otherUser ? otherUser : fallbackUser;

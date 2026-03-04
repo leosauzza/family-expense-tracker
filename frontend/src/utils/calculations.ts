@@ -48,15 +48,15 @@ export function calculateFinalBalance(
   
   // Split shared expenses by type
   const systemSharedExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesPaidByUser, 
+    monthlyData.sharedExpensesByAllUsers, 
     'SplitWithAllSystemUsers'
   );
   const systemUserExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesPaidByUser, 
+    monthlyData.sharedExpensesByAllUsers, 
     'ForSpecificSystemUser'
   );
   const externalSharedExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesPaidByUser, 
+    monthlyData.sharedExpensesByAllUsers, 
     'SplitWithExternalParties'
   );
 
@@ -143,15 +143,15 @@ export function calculateTheyOweMeDetailed(
 
   // Split shared expenses by type
   const systemSharedExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesPaidByUser, 
+    monthlyData.sharedExpensesByAllUsers, 
     'SplitWithAllSystemUsers'
   );
   const systemUserExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesPaidByUser, 
+    monthlyData.sharedExpensesByAllUsers, 
     'ForSpecificSystemUser'
   );
   const externalSharedExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesPaidByUser, 
+    monthlyData.sharedExpensesByAllUsers, 
     'SplitWithExternalParties'
   );
 
