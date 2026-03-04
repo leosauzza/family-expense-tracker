@@ -1,0 +1,26 @@
+# .NET
+*.dll
+*.exe
+*.pdb
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+/src/*/bin/
+/src/*/obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+publish/
+*.nupkg
+*.snupkg
+**/packages/*
+*.csproj.user
