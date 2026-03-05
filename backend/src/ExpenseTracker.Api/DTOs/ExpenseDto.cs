@@ -19,6 +19,8 @@ public class SharedExpenseDto : ExpenseDto
     public Guid MonthlyDataId { get; set; }
     public Guid PaidByUserId { get; set; }
     public string PaidByUserName { get; set; } = string.Empty;
+    public string PaidByUserInitial { get; set; } = string.Empty;
+    public string PaidByUserColor { get; set; } = string.Empty;
     public string ExpenseType { get; set; } = "SplitWithAllSystemUsers";
     public List<string> ExternalParties { get; set; } = new();
     public Guid? TargetUserId { get; set; }

@@ -36,27 +36,34 @@ function filterSharedExpensesByType(
 export function calculateFinalBalance(
   monthlyData: MonthlyData,
   sharedByOthers: SharedExpenseView[],
-  totalSystemUsers: number
+  coupleBalance?: { ars: number; usd: number }
 ): CalculationResult {
   const walletAmount = monthlyData.walletAmount;
-  
+  const walletAmountUSD = monthlyData.walletAmountUSD;
+
+  const coupleBalanceARS = coupleBalance?.ars ?? 0;
+  const coupleBalanceUSD = coupleBalance?.usd ?? 0;
+
+  // Merge shared expenses from current user and others
+  const allSharedExpenses = [...monthlyData.sharedExpensesByCurrentUser, ...sharedByOthers];
+
   // Third party expenses (only unpaid) - from ThirdPartyExpenseList
   const thirdPartyTotals = calculateThirdPartyTotals(monthlyData.thirdPartyExpenseLists);
-  
+
   // Fixed expenses (only unpaid)
   const fixedTotals = calculateTotals(monthlyData.fixedExpenses);
-  
+
   // Split shared expenses by type
   const systemSharedExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesByAllUsers, 
+    allSharedExpenses,
     'SplitWithAllSystemUsers'
   );
   const systemUserExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesByAllUsers, 
+    allSharedExpenses,
     'ForSpecificSystemUser'
   );
   const externalSharedExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesByAllUsers, 
+    allSharedExpenses,
     'SplitWithExternalParties'
   );
 
@@ -64,43 +71,37 @@ export function calculateFinalBalance(
   const systemSharedTotals = calculateTotals(systemSharedExpenses);
   const systemUserTotals = calculateTotals(systemUserExpenses);
   const externalSharedTotals = calculateTotals(externalSharedExpenses);
-  
+
   // Shared by others (only unpaid) - only count SplitWithAllSystemUsers from others
   const sharedByOthersFiltered = sharedByOthers.filter(
     e => (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers'
   );
   const sharedByOthersTotals = calculateTotals(sharedByOthersFiltered);
-  
-  // Calculate shared portion (only SplitWithAllSystemUsers are split among all users)
-  const sharedSumARS = (sharedByOthersTotals.ars + systemSharedTotals.ars) / totalSystemUsers;
-  const sharedSumUSD = (sharedByOthersTotals.usd + systemSharedTotals.usd) / totalSystemUsers;
-  
-  // For "They Owe Me" calculation:
-  // - Third party expenses: 100% is owed to me
-  // - System user expenses: these are paid BY me FOR another user, so they owe me 100%
-  // - External shared expenses: depends on split, but by default the external party owes their portion
-  //   For simplicity, we'll treat external shared as 50% owed to me (external party owes half)
-  
+
   // Final balance calculation:
-  // Wallet + ThirdParty + SystemUserExpenses + (ExternalShared / 2) - Fixed + (SystemSharedSplit)
-  const externalSharedPortionARS = externalSharedTotals.ars / 2; // Assuming 50/50 split with external
+  // Wallet - FixedExpenses + ThirdParty + ExpensesPaidByMeForOthers100% + CoupleBalance - (ExternalShared / 2)
+
+  // External shared: split 50/50
+  const externalSharedPortionARS = externalSharedTotals.ars / 2;
   const externalSharedPortionUSD = externalSharedTotals.usd / 2;
-  
-  const finalBalanceARS = walletAmount 
-    + thirdPartyTotals.ars 
-    + systemUserTotals.ars 
-    + externalSharedPortionARS 
-    - fixedTotals.ars 
-    + sharedSumARS;
-    
-  const finalBalanceUSD = thirdPartyTotals.usd 
-    + systemUserTotals.usd 
-    + externalSharedPortionUSD 
-    - fixedTotals.usd 
-    + sharedSumUSD;
-  
+
+  const finalBalanceARS = walletAmount
+    - fixedTotals.ars
+    + thirdPartyTotals.ars
+    + systemUserTotals.ars
+    + coupleBalanceARS
+    - externalSharedPortionARS;
+
+  const finalBalanceUSD = walletAmountUSD
+    - fixedTotals.usd
+    + thirdPartyTotals.usd
+    + systemUserTotals.usd
+    + coupleBalanceUSD
+    - externalSharedPortionUSD;
+
   return {
     walletAmount,
+    walletAmountUSD,
     thirdPartyTotalARS: thirdPartyTotals.ars,
     thirdPartyTotalUSD: thirdPartyTotals.usd,
     fixedExpensesTotalARS: fixedTotals.ars,
@@ -141,17 +142,20 @@ export function calculateTheyOweMeDetailed(
   // Third party totals
   const thirdPartyTotals = calculateThirdPartyTotals(monthlyData.thirdPartyExpenseLists);
 
+  // Merge shared expenses from current user and others
+  const allSharedExpenses = [...monthlyData.sharedExpensesByCurrentUser, ...sharedByOthers];
+
   // Split shared expenses by type
   const systemSharedExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesByAllUsers, 
+    allSharedExpenses,
     'SplitWithAllSystemUsers'
   );
   const systemUserExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesByAllUsers, 
+    allSharedExpenses,
     'ForSpecificSystemUser'
   );
   const externalSharedExpenses = filterSharedExpensesByType(
-    monthlyData.sharedExpensesByAllUsers, 
+    allSharedExpenses,
     'SplitWithExternalParties'
   );
 

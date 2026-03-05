@@ -10,7 +10,9 @@
     "wallet": {
       "title": "Billetera",
       "edit": "Editar",
-      "editTitle": "Editar monto de billetera"
+      "editTitle": "Editar monto de billetera",
+      "ars": "ARS",
+      "usd": "USD"
     },
     "fixedExpenses": {
       "title": "Gastos Fijos Mensuales",
@@ -69,7 +71,9 @@
       "sharedSplit": "División gastos compartidos",
       "systemUser": "Gastos para otros usuarios",
       "externalShared": "Compartidos con externos",
-      "formula": "Fórmula: Billetera + Terceros + Para Otros + (Ext/2) - Fijos + (Compartidos / Usuarios)"
+      "coupleBalance": "Balance con pareja",
+      "coupleBalanceWith": "Balance con {name}",
+      "formula": "Fórmula: Billetera + Terceros + Para Otros + (Ext/2) - Fijos + Balance Pareja"
     },
     "theyOweMe": {
       "title": "Me deben",

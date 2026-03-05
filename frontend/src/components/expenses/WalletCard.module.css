@@ -24,15 +24,43 @@
   margin: 0;
 }
 
-.amount {
+.amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amountARS,
+.amountUSD {
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--color-primary, #6366f1);
   font-variant-numeric: tabular-nums;
 }
 
+.amountARS {
+  color: var(--color-ars, #3b82f6);
+}
+
+.amountUSD {
+  color: var(--color-usd, #10b981);
+}
+
+.walletInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 @media (max-width: 767px) {
-  .amount {
+  .amountARS,
+  .amountUSD {
     font-size: 1.5rem;
   }
 }

@@ -28,6 +28,8 @@ public class MonthlyDataController : ControllerBase
             .AsNoTracking()
             .Include(md => md.FixedExpenses)
             .Include(md => md.SharedExpensesPaidByUser)
+                .ThenInclude(se => se.PaidByUser)
+            .Include(md => md.SharedExpensesPaidByUser)
                 .ThenInclude(se => se.TargetUser)
             .Include(md => md.ThirdPartyExpenseLists)
                 .ThenInclude(tpl => tpl.Expenses)
@@ -42,20 +44,6 @@ public class MonthlyDataController : ControllerBase
             .Where(se => se.ExpenseType == SharedExpenseType.ForSpecificSystemUser
                       && se.TargetUserId == userId
                       && se.MonthlyData.UserId != userId
-                      && se.MonthlyData.Year == year
-                      && se.MonthlyData.Month == month)
-            .ToListAsync();
-
-        // Load ForSpecificSystemUser expenses where partner is target (paid by partner for themselves)
-        // These are needed to show all shared expenses in the couple table
-        var partnerExpenses = await _context.SharedExpenses
-            .AsNoTracking()
-            .Include(se => se.PaidByUser)
-            .Include(se => se.TargetUser)
-            .Include(se => se.MonthlyData)
-            .Where(se => se.ExpenseType == SharedExpenseType.ForSpecificSystemUser
-                      && se.MonthlyData.UserId != userId
-                      && se.PaidByUserId != userId
                       && se.MonthlyData.Year == year
                       && se.MonthlyData.Month == month)
             .ToListAsync();
@@ -75,6 +63,7 @@ public class MonthlyDataController : ControllerBase
                 Year = year,
                 Month = month,
                 WalletAmount = 0,
+                WalletAmountUSD = 0,
                 DataCopiedFromPreviousMonth = false
             };
 
@@ -86,13 +75,15 @@ public class MonthlyDataController : ControllerBase
                 .AsNoTracking()
                 .Include(md => md.FixedExpenses)
                 .Include(md => md.SharedExpensesPaidByUser)
+                    .ThenInclude(se => se.PaidByUser)
+                .Include(md => md.SharedExpensesPaidByUser)
                     .ThenInclude(se => se.TargetUser)
                 .Include(md => md.ThirdPartyExpenseLists)
                     .ThenInclude(tpl => tpl.Expenses)
                 .FirstAsync(md => md.Id == monthlyData.Id);
         }
 
-        var dto = MapToDto(monthlyData, targetedExpenses.Concat(partnerExpenses).ToList());
+        var dto = MapToDto(monthlyData, targetedExpenses);
         return Ok(new MonthlyDataResponse { Success = true, Data = dto });
     }
 
@@ -133,6 +124,7 @@ public class MonthlyDataController : ControllerBase
         }
 
         monthlyData.WalletAmount = request.Amount;
+        monthlyData.WalletAmountUSD = request.AmountUSD;
         await _context.SaveChangesAsync();
 
         var dto = MapToDto(monthlyData);
@@ -230,6 +222,7 @@ public class MonthlyDataController : ControllerBase
         }
 
         currentData.WalletAmount = 0;
+        currentData.WalletAmountUSD = 0;
         currentData.DataCopiedFromPreviousMonth = true;
 
         await _context.SaveChangesAsync();
@@ -238,6 +231,8 @@ public class MonthlyDataController : ControllerBase
         var reloaded = await _context.MonthlyData
             .AsNoTracking()
             .Include(md => md.FixedExpenses)
+            .Include(md => md.SharedExpensesPaidByUser)
+                .ThenInclude(se => se.PaidByUser)
             .Include(md => md.SharedExpensesPaidByUser)
                 .ThenInclude(se => se.TargetUser)
             .Include(md => md.ThirdPartyExpenseLists)
@@ -256,6 +251,8 @@ public class MonthlyDataController : ControllerBase
             MonthlyDataId = se.MonthlyDataId,
             PaidByUserId = se.PaidByUserId,
             PaidByUserName = se.PaidByUser?.Name ?? "",
+            PaidByUserInitial = se.PaidByUser?.Initial ?? "",
+            PaidByUserColor = se.PaidByUser?.Color ?? "",
             Detail = se.Detail,
             AmountARS = se.AmountARS,
             AmountUSD = se.AmountUSD,
@@ -277,6 +274,8 @@ public class MonthlyDataController : ControllerBase
                 MonthlyDataId = se.MonthlyDataId,
                 PaidByUserId = se.PaidByUserId,
                 PaidByUserName = se.PaidByUser?.Name ?? "",
+                PaidByUserInitial = se.PaidByUser?.Initial ?? "",
+                PaidByUserColor = se.PaidByUser?.Color ?? "",
                 Detail = se.Detail,
                 AmountARS = se.AmountARS,
                 AmountUSD = se.AmountUSD,
@@ -297,6 +296,7 @@ public class MonthlyDataController : ControllerBase
             Year = md.Year,
             Month = md.Month,
             WalletAmount = md.WalletAmount,
+            WalletAmountUSD = md.WalletAmountUSD,
             DataCopiedFromPreviousMonth = md.DataCopiedFromPreviousMonth,
             FixedExpenses = md.FixedExpenses.Select(fe => new FixedExpenseDto
             {
@@ -307,7 +307,7 @@ public class MonthlyDataController : ControllerBase
                 AmountUSD = fe.AmountUSD,
                 IsPaid = fe.IsPaid
             }).ToList(),
-            SharedExpensesByAllUsers = allSharedExpenses,
+            SharedExpensesByCurrentUser = allSharedExpenses,
             ThirdPartyExpenseLists = md.ThirdPartyExpenseLists.Select(tpl => new ThirdPartyExpenseListDto
             {
                 Id = tpl.Id,

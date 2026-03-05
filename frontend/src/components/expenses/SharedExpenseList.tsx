@@ -197,11 +197,11 @@ export function SharedExpenseList({
 
                 return (
                   <div key={expense.id} className={`${styles.tableRow} ${!users && styles.noOwnerColumn} ${!canEdit && styles.readOnly}`}>
-                    {users && (
+                    {(users || expense.paidByUserInitial) && (
                       <div className={styles.owner}>
-                        {owner ? (
-                          <div className={styles.avatar} style={{ backgroundColor: owner.color }} title={expense.paidByUserName || owner.name}>
-                            {owner.initial}
+                        {(expense.paidByUserInitial && expense.paidByUserColor) || owner ? (
+                          <div className={styles.avatar} style={{ backgroundColor: expense.paidByUserColor || owner?.color }} title={expense.paidByUserName || owner?.name}>
+                            {expense.paidByUserInitial || owner?.initial}
                           </div>
                         ) : (
                           <div className={styles.sharedIndicator} title={t('dashboard.sharedExpenseList.noOwner')}>

@@ -8,6 +8,7 @@ public class MonthlyData
     public int Year { get; set; }
     public int Month { get; set; }
     public decimal WalletAmount { get; set; }
+    public decimal WalletAmountUSD { get; set; } = 0;
     public bool DataCopiedFromPreviousMonth { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     

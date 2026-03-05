@@ -10,7 +10,9 @@
     "wallet": {
       "title": "Wallet",
       "edit": "Edit",
-      "editTitle": "Edit wallet amount"
+      "editTitle": "Edit wallet amount",
+      "ars": "ARS",
+      "usd": "USD"
     },
     "fixedExpenses": {
       "title": "Monthly Fixed Expenses",
@@ -69,7 +71,9 @@
       "sharedSplit": "Shared expenses split",
       "systemUser": "Expenses for other users",
       "externalShared": "Shared with external",
-      "formula": "Formula: Wallet + Third Party + For Others + (Ext/2) - Fixed + (Shared / Users)"
+      "coupleBalance": "Couple balance",
+      "coupleBalanceWith": "Balance with {name}",
+      "formula": "Formula: Wallet + Third Party + For Others + (Ext/2) - Fixed + Couple Balance"
     },
     "theyOweMe": {
       "title": "They owe me",

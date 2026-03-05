@@ -165,6 +165,10 @@ namespace ExpenseTracker.Infrastructure.Migrations
                     b.Property<decimal>("WalletAmount")
                         .HasColumnType("numeric");
 
+                    b.Property<decimal>("WalletAmountUSD")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<int>("Year")
                         .HasColumnType("integer");
 

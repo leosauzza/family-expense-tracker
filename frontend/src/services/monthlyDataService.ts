@@ -41,10 +41,10 @@ export const monthlyDataService = {
     return response.data;
   },
 
-  async updateWallet(id: string, amount: number): Promise<void> {
+  async updateWallet(id: string, amount: number, amountUSD: number): Promise<void> {
     const response = await fetchApi<MonthlyDataResponse>(`/monthlydata/${id}/wallet`, {
       method: 'PUT',
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify({ amount, amountUSD }),
     });
 
     if (!response.success) {

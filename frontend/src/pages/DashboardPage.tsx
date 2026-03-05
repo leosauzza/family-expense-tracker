@@ -70,6 +70,12 @@ export function DashboardPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [listOrder, setListOrder] = useState<string[]>([]);
 
+  // Merge shared expenses from both sources
+  const allSharedExpenses = useMemo(() => {
+    if (!monthlyData) return [];
+    return [...monthlyData.sharedExpensesByCurrentUser, ...sharedByOthers];
+  }, [monthlyData, sharedByOthers]);
+
   // Sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -144,7 +150,7 @@ export function DashboardPage() {
     // If wallet is 0 and there are no expenses, consider it new
     return data.walletAmount === 0 &&
            data.fixedExpenses.length === 0 &&
-           data.sharedExpensesByAllUsers.length === 0 &&
+           data.sharedExpensesByCurrentUser.length === 0 &&
            data.thirdPartyExpenseLists.length === 0;
   };
 
@@ -170,10 +176,10 @@ export function DashboardPage() {
   };
 
   // Wallet update
-  const handleUpdateWallet = async (amount: number) => {
+  const handleUpdateWallet = async (amount: number, amountUSD: number) => {
     if (!monthlyData) return;
-    await monthlyDataService.updateWallet(monthlyData.id, amount);
-    setMonthlyData({ ...monthlyData, walletAmount: amount });
+    await monthlyDataService.updateWallet(monthlyData.id, amount, amountUSD);
+    setMonthlyData({ ...monthlyData, walletAmount: amount, walletAmountUSD: amountUSD });
   };
 
   // Fixed expenses handlers
@@ -230,7 +236,7 @@ export function DashboardPage() {
     });
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesByAllUsers: [...monthlyData.sharedExpensesByAllUsers, newExpense]
+      sharedExpensesByCurrentUser: [...monthlyData.sharedExpensesByCurrentUser, newExpense]
     });
   };
 
@@ -252,7 +258,7 @@ export function DashboardPage() {
     });
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesByAllUsers: [...monthlyData.sharedExpensesByAllUsers, newExpense]
+      sharedExpensesByCurrentUser: [...monthlyData.sharedExpensesByCurrentUser, newExpense]
     });
     setShowSharedExpenseModal(false);
   };
@@ -262,7 +268,7 @@ export function DashboardPage() {
     await sharedExpenseService.update(id, expense);
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesByAllUsers: monthlyData.sharedExpensesByAllUsers.map(e =>
+      sharedExpensesByCurrentUser: monthlyData.sharedExpensesByCurrentUser.map(e =>
         e.id === id ? { ...e, ...expense } : e
       )
     });
@@ -273,7 +279,7 @@ export function DashboardPage() {
     await sharedExpenseService.delete(id);
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesByAllUsers: monthlyData.sharedExpensesByAllUsers.filter(e => e.id !== id)
+      sharedExpensesByCurrentUser: monthlyData.sharedExpensesByCurrentUser.filter(e => e.id !== id)
     });
   };
 
@@ -282,7 +288,7 @@ export function DashboardPage() {
     await sharedExpenseService.togglePaid(id, isPaid);
     setMonthlyData({
       ...monthlyData,
-      sharedExpensesByAllUsers: monthlyData.sharedExpensesByAllUsers.map(e =>
+      sharedExpensesByCurrentUser: monthlyData.sharedExpensesByCurrentUser.map(e =>
         e.id === id ? { ...e, isPaid } : e
       )
     });
@@ -314,7 +320,7 @@ export function DashboardPage() {
         });
         setMonthlyData({
           ...monthlyData,
-          sharedExpensesByAllUsers: [...monthlyData.sharedExpensesByAllUsers, newExpense]
+          sharedExpensesByCurrentUser: [...monthlyData.sharedExpensesByCurrentUser, newExpense]
         });
         break;
       }
@@ -473,7 +479,7 @@ export function DashboardPage() {
       }
     });
 
-    monthlyData.sharedExpensesByAllUsers.forEach(expense => {
+    allSharedExpenses.forEach(expense => {
       const type = expense.expenseType || 'SplitWithAllSystemUsers';
       
       switch (type) {
@@ -527,7 +533,7 @@ export function DashboardPage() {
     }));
 
     return { systemShared, systemUserGroups, externalSharedGroups };
-  }, [monthlyData, allUsers, virtualListConfigs]);
+  }, [allSharedExpenses, allUsers, virtualListConfigs]);
 
   // Drag and drop handlers
   const handleDragStart = (event: DragStartEvent) => {
@@ -668,28 +674,56 @@ export function DashboardPage() {
         userAPaidForB: [],
         userBPaidForA: [],
         userA: viewedUser,
-        userB: fallbackUser
+        userB: fallbackUser,
+        coupleBalance: { ars: 0, usd: 0 }
       };
     }
 
-    const viewedUserSharedForAll = monthlyData.sharedExpensesByAllUsers.filter(e =>
+    const viewedUserSharedForAll = allSharedExpenses.filter(e =>
       (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers' &&
       e.paidByUserId === viewedUser.id
     );
-    const viewedUserPaidForOther = monthlyData.sharedExpensesByAllUsers.filter(e =>
+    const viewedUserPaidForOther = allSharedExpenses.filter(e =>
       e.expenseType === 'ForSpecificSystemUser' &&
       e.paidByUserId === viewedUser.id &&
       e.targetUserId === otherUser?.id
     );
 
-    const otherUserSharedForAll = sharedByOthers.filter(e =>
-      (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers'
+    const otherUserSharedForAll = allSharedExpenses.filter(e =>
+      (e.expenseType || 'SplitWithAllSystemUsers') === 'SplitWithAllSystemUsers' &&
+      e.paidByUserId === otherUser?.id
     );
-    const otherUserPaidForViewedUser = monthlyData.sharedExpensesByAllUsers.filter(e =>
+    const otherUserPaidForViewedUser = allSharedExpenses.filter(e =>
       e.expenseType === 'ForSpecificSystemUser' &&
       e.paidByUserId !== viewedUser.id &&
       e.targetUserId === viewedUser.id
     );
+
+    // Calculate what viewedUser owes/is owed by otherUser
+    // Positive = otherUser owes viewedUser, Negative = viewedUser owes otherUser
+    const viewedUserPaidForOtherTotal = viewedUserPaidForOther
+      .filter(e => !e.isPaid)
+      .reduce((sum, e) => ({ ars: sum.ars + e.amountARS, usd: sum.usd + e.amountUSD }), { ars: 0, usd: 0 });
+    
+    const otherUserPaidForViewedUserTotal = otherUserPaidForViewedUser
+      .filter(e => !e.isPaid)
+      .reduce((sum, e) => ({ ars: sum.ars + e.amountARS, usd: sum.usd + e.amountUSD }), { ars: 0, usd: 0 });
+
+    // Balance from shared expenses (each pays half)
+    const viewedUserSharedTotal = viewedUserSharedForAll
+      .filter(e => !e.isPaid)
+      .reduce((sum, e) => ({ ars: sum.ars + e.amountARS, usd: sum.usd + e.amountUSD }), { ars: 0, usd: 0 });
+    const otherUserSharedTotal = otherUserSharedForAll
+      .filter(e => !e.isPaid)
+      .reduce((sum, e) => ({ ars: sum.ars + e.amountARS, usd: sum.usd + e.amountUSD }), { ars: 0, usd: 0 });
+
+    // Calculate couple balance:
+    // - From ForSpecificSystemUser: what I paid for them - what they paid for me
+    // - From SplitWithAllSystemUsers: my half - their half (should be 0 if both are equal)
+    const coupleBalanceARS = (viewedUserPaidForOtherTotal.ars - otherUserPaidForViewedUserTotal.ars) + 
+                            (viewedUserSharedTotal.ars / 2 - otherUserSharedTotal.ars / 2);
+    const coupleBalanceUSD = (viewedUserPaidForOtherTotal.usd - otherUserPaidForViewedUserTotal.usd) + 
+                            (viewedUserSharedTotal.usd / 2 - otherUserSharedTotal.usd / 2);
 
     const userB = otherUser ? otherUser : fallbackUser;
 
@@ -699,9 +733,10 @@ export function DashboardPage() {
       userAPaidForB: viewedUserPaidForOther,
       userBPaidForA: otherUserPaidForViewedUser,
       userA: viewedUser,
-      userB: userB
+      userB: userB,
+      coupleBalance: { ars: coupleBalanceARS, usd: coupleBalanceUSD }
     };
-  }, [viewedUser, otherUser, monthlyData, sharedByOthers]);
+  }, [viewedUser, otherUser, allSharedExpenses]);
 
   if (isLoading || !monthlyData || !viewedUser) {
     return (
@@ -711,7 +746,11 @@ export function DashboardPage() {
     );
   }
 
-  const calculation = calculateFinalBalance(monthlyData, sharedByOthers, allUsers.length || 2);
+  const calculation = calculateFinalBalance(
+    monthlyData, 
+    sharedByOthers,
+    coupleBalanceData.coupleBalance
+  );
 
   // Function to render a list by its ID
   const renderListById = (listId: string): React.ReactNode => {
@@ -855,6 +894,7 @@ export function DashboardPage() {
           <div className={styles.walletSection}>
             <WalletCard
               amount={monthlyData.walletAmount}
+              amountUSD={monthlyData.walletAmountUSD}
               isReadOnly={!isViewingOwnData}
               onUpdate={handleUpdateWallet}
             />
@@ -865,6 +905,9 @@ export function DashboardPage() {
               totalSystemUsers={allUsers.length || 2}
               isExpanded={isCalculationExpanded}
               onToggle={toggleCalculation}
+              otherUserName={otherUser?.name}
+              coupleBalanceAmount={coupleBalanceData.coupleBalance?.ars}
+              coupleBalanceAmountUSD={coupleBalanceData.coupleBalance?.usd}
             />
           </div>
           <div className={styles.theyOweSection}>

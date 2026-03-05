@@ -6,22 +6,37 @@ import type { CalculationResult } from '../../types';
 
 interface CalculationDisplayProps {
   calculation: CalculationResult;
-  totalSystemUsers: number;
+  totalSystemUsers?: number;
   isExpanded: boolean;
   onToggle: () => void;
+  otherUserName?: string;
+  coupleBalanceAmount?: number;
+  coupleBalanceAmountUSD?: number;
 }
 
-export function CalculationDisplay({ calculation, totalSystemUsers, isExpanded, onToggle }: CalculationDisplayProps) {
+export function CalculationDisplay({ 
+  calculation, 
+  totalSystemUsers: _totalSystemUsers, 
+  isExpanded, 
+  onToggle,
+  otherUserName,
+  coupleBalanceAmount = 0,
+  coupleBalanceAmountUSD = 0
+}: CalculationDisplayProps) {
   const { t } = useTranslation();
 
-  // Build items array based on what has values
+  const coupleBalanceLabel = otherUserName 
+    ? t('dashboard.calculation.coupleBalanceWith', { name: otherUserName })
+    : t('dashboard.calculation.coupleBalance');
+
+  // Build items array based on what has values (coupleBalance is now included in finalBalance)
   const items = [
-    { label: t('dashboard.calculation.wallet'), valueARS: calculation.walletAmount, valueUSD: 0 },
+    { label: t('dashboard.calculation.wallet'), valueARS: calculation.walletAmount, valueUSD: calculation.walletAmountUSD },
     { label: t('dashboard.calculation.thirdParty'), valueARS: calculation.thirdPartyTotalARS, valueUSD: calculation.thirdPartyTotalUSD },
     { label: t('dashboard.calculation.systemUser'), valueARS: calculation.systemUserExpensesTotalARS, valueUSD: calculation.systemUserExpensesTotalUSD },
     { label: t('dashboard.calculation.externalShared'), valueARS: calculation.externalSharedExpensesTotalARS / 2, valueUSD: calculation.externalSharedExpensesTotalUSD / 2 },
     { label: t('dashboard.calculation.fixedExpenses'), valueARS: -calculation.fixedExpensesTotalARS, valueUSD: -calculation.fixedExpensesTotalUSD },
-    { label: t('dashboard.calculation.sharedSplit'), valueARS: (calculation.sharedByUserTotalARS + calculation.sharedByOthersTotalARS) / totalSystemUsers, valueUSD: (calculation.sharedByUserTotalUSD + calculation.sharedByOthersTotalUSD) / totalSystemUsers },
+    { label: coupleBalanceLabel, valueARS: coupleBalanceAmount, valueUSD: coupleBalanceAmountUSD, isCoupleBalance: true },
   ];
 
   return (
@@ -56,16 +71,35 @@ export function CalculationDisplay({ calculation, totalSystemUsers, isExpanded, 
 
           <div className={styles.breakdown}>
             {items.map((item, index) => (
-              <div key={index} className={styles.item}>
+              <div key={index} className={`${styles.item} ${item.isCoupleBalance ? styles.coupleBalance : ''}`}>
                 <span className={styles.label}>{item.label}</span>
                 <div className={styles.values}>
-                  <span className={`${styles.value} ${styles.ars} ${item.valueARS < 0 ? styles.negative : ''}`}>
-                    {item.valueARS >= 0 ? '+' : ''}{formatCurrencyARS(item.valueARS)}
-                  </span>
-                  {item.valueUSD !== 0 && (
-                    <span className={`${styles.value} ${styles.usd} ${item.valueUSD < 0 ? styles.negative : ''}`}>
-                      {item.valueUSD >= 0 ? '+' : ''}{formatCurrencyUSD(item.valueUSD)}
-                    </span>
+                  {item.isCoupleBalance ? (
+                    <>
+                      <span className={`${styles.value} ${styles.ars} ${item.valueARS < 0 ? styles.negative : styles.positive}`}>
+                        {item.valueARS >= 0 ? '+' : ''}{formatCurrencyARS(item.valueARS)}
+                      </span>
+                      {item.valueUSD !== 0 && (
+                        <span className={`${styles.value} ${styles.usd} ${item.valueUSD < 0 ? styles.negative : styles.positive}`}>
+                          {item.valueUSD >= 0 ? '+' : ''}{formatCurrencyUSD(item.valueUSD)}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className={`${styles.value} ${styles.ars} ${item.valueARS < 0 ? styles.negative : ''}`}>
+                        {item.valueARS >= 0 ? '+' : ''}{formatCurrencyARS(item.valueARS)}
+                      </span>
+                      {item.label === t('dashboard.calculation.wallet') && item.valueUSD !== 0 ? (
+                        <span className={`${styles.value} ${styles.usd} ${styles.walletUSD}`}>
+                          (+ {formatCurrencyUSD(item.valueUSD)})
+                        </span>
+                      ) : item.valueUSD !== 0 ? (
+                        <span className={`${styles.value} ${styles.usd} ${item.valueUSD < 0 ? styles.negative : ''}`}>
+                          {item.valueUSD >= 0 ? '+' : ''}{formatCurrencyUSD(item.valueUSD)}
+                        </span>
+                      ) : null}
+                    </>
                   )}
                 </div>
               </div>

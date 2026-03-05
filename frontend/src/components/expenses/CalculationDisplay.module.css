@@ -112,6 +112,27 @@
   opacity: 0.8;
 }
 
+.value.positive {
+  color: #86efac;
+}
+
+.walletUSD {
+  font-size: 0.75rem !important;
+  opacity: 0.7;
+  color: #9ca3af !important;
+}
+
+.coupleBalance {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  margin-top: 0.25rem;
+}
+
+.coupleBalance .label {
+  font-weight: 600;
+}
+
 .divider {
   height: 1px;
   background-color: rgba(255, 255, 255, 0.3);

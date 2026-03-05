@@ -7,9 +7,10 @@ public class MonthlyDataDto
     public int Year { get; set; }
     public int Month { get; set; }
     public decimal WalletAmount { get; set; }
+    public decimal WalletAmountUSD { get; set; } = 0;
     public bool DataCopiedFromPreviousMonth { get; set; }
     public List<FixedExpenseDto> FixedExpenses { get; set; } = new();
-    public List<SharedExpenseDto> SharedExpensesByAllUsers { get; set; } = new();
+    public List<SharedExpenseDto> SharedExpensesByCurrentUser { get; set; } = new();
     public List<ThirdPartyExpenseListDto> ThirdPartyExpenseLists { get; set; } = new();
 }
 
@@ -30,4 +31,5 @@ public class CreateMonthlyDataRequest
 public class UpdateWalletRequest
 {
     public decimal Amount { get; set; }
+    public decimal AmountUSD { get; set; } = 0;
 }

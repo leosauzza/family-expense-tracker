@@ -60,13 +60,15 @@ public class SharedExpensesController : ControllerBase
             MonthlyDataId = expense.MonthlyDataId,
             PaidByUserId = expense.PaidByUserId,
             PaidByUserName = user?.Name ?? "",
+            PaidByUserInitial = user?.Initial ?? "",
+            PaidByUserColor = user?.Color ?? "",
             Detail = expense.Detail,
             AmountARS = expense.AmountARS,
             AmountUSD = expense.AmountUSD,
             IsPaid = expense.IsPaid,
             ExpenseType = expense.ExpenseType.ToString(),
-            ExternalParties = string.IsNullOrEmpty(expense.ExternalPartiesJson) 
-                ? new List<string>() 
+            ExternalParties = string.IsNullOrEmpty(expense.ExternalPartiesJson)
+                ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(expense.ExternalPartiesJson)!,
             TargetUserId = expense.TargetUserId,
             TargetUserName = null
@@ -118,13 +120,15 @@ public class SharedExpensesController : ControllerBase
             MonthlyDataId = expense.MonthlyDataId,
             PaidByUserId = expense.PaidByUserId,
             PaidByUserName = user?.Name ?? "",
+            PaidByUserInitial = user?.Initial ?? "",
+            PaidByUserColor = user?.Color ?? "",
             Detail = expense.Detail,
             AmountARS = expense.AmountARS,
             AmountUSD = expense.AmountUSD,
             IsPaid = expense.IsPaid,
             ExpenseType = expense.ExpenseType.ToString(),
-            ExternalParties = string.IsNullOrEmpty(expense.ExternalPartiesJson) 
-                ? new List<string>() 
+            ExternalParties = string.IsNullOrEmpty(expense.ExternalPartiesJson)
+                ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(expense.ExternalPartiesJson)!,
             TargetUserId = expense.TargetUserId,
             TargetUserName = null
@@ -183,13 +187,15 @@ public class SharedExpensesController : ControllerBase
             MonthlyDataId = expense.MonthlyDataId,
             PaidByUserId = expense.PaidByUserId,
             PaidByUserName = user?.Name ?? "",
+            PaidByUserInitial = user?.Initial ?? "",
+            PaidByUserColor = user?.Color ?? "",
             Detail = expense.Detail,
             AmountARS = expense.AmountARS,
             AmountUSD = expense.AmountUSD,
             IsPaid = expense.IsPaid,
             ExpenseType = expense.ExpenseType.ToString(),
-            ExternalParties = string.IsNullOrEmpty(expense.ExternalPartiesJson) 
-                ? new List<string>() 
+            ExternalParties = string.IsNullOrEmpty(expense.ExternalPartiesJson)
+                ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(expense.ExternalPartiesJson)!,
             TargetUserId = expense.TargetUserId,
             TargetUserName = null
@@ -217,13 +223,15 @@ public class SharedExpensesController : ControllerBase
             MonthlyDataId = se.MonthlyDataId,
             PaidByUserId = se.PaidByUserId,
             PaidByUserName = se.PaidByUser.Name,
+            PaidByUserInitial = se.PaidByUser.Initial,
+            PaidByUserColor = se.PaidByUser.Color,
             Detail = se.Detail,
             AmountARS = se.AmountARS,
             AmountUSD = se.AmountUSD,
             IsPaid = se.IsPaid,
             ExpenseType = se.ExpenseType.ToString(),
-            ExternalParties = string.IsNullOrEmpty(se.ExternalPartiesJson) 
-                ? new List<string>() 
+            ExternalParties = string.IsNullOrEmpty(se.ExternalPartiesJson)
+                ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(se.ExternalPartiesJson)!,
             TargetUserId = se.TargetUserId,
             TargetUserName = null

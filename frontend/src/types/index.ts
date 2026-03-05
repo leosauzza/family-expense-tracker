@@ -24,6 +24,8 @@ export interface SharedExpense extends Expense {
   monthlyDataId: string;
   paidByUserId: string;
   paidByUserName?: string;
+  paidByUserInitial?: string;
+  paidByUserColor?: string;
   expenseType?: SharedExpenseType;
   externalParties?: string[];
   targetUserId?: string | null;
@@ -59,9 +61,10 @@ export interface MonthlyData {
   year: number;
   month: number;
   walletAmount: number;
+  walletAmountUSD: number;
   dataCopiedFromPreviousMonth: boolean;
   fixedExpenses: FixedExpense[];
-  sharedExpensesByAllUsers: SharedExpense[];
+  sharedExpensesByCurrentUser: SharedExpense[];
   thirdPartyExpenseLists: ThirdPartyExpenseList[];
 }
 
@@ -73,6 +76,7 @@ export type ExpenseType = 'fixed' | 'shared' | 'thirdParty';
 
 export interface CalculationResult {
   walletAmount: number;
+  walletAmountUSD: number;
   thirdPartyTotalARS: number;
   thirdPartyTotalUSD: number;
   fixedExpensesTotalARS: number;
