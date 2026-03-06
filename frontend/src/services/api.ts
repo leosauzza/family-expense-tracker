@@ -2,22 +2,20 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 
 // Build the base URL
 // If VITE_API_URL starts with 'http', use it as-is
-// If it starts with '/', use the current hostname
-// Otherwise default to same host, port 8080
+// If it starts with '/', use as relative path (proxied by nginx in production)
+// Otherwise default to relative path /api
 function getBaseUrl(): string {
   if (API_URL.startsWith('http')) {
     return API_URL;
   }
 
   if (API_URL.startsWith('/')) {
-    // Use same hostname as frontend, but port 8080
-    const hostname = window.location.hostname;
-    return `http://${hostname}:8080${API_URL}`;
+    // Use relative path - nginx will proxy to backend
+    return API_URL;
   }
 
-  // Default: use same host, port 8080
-  const hostname = window.location.hostname;
-  return `http://${hostname}:8080/api`;
+  // Default: use relative path /api
+  return '/api';
 }
 
 export async function fetchApi<T>(
