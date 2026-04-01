@@ -47,7 +47,7 @@ export function CoupleBalance({
   const userBOwesFromShared = userBSharedTotal / 2;
 
   const balanceARS = (userAOwesFromShared - userBOwesFromShared) + (userAPaidForBTotal - userBPaidForATotal);
-  const userAOwes = balanceARS < 0 || (balanceARS === 0);
+  const userAOwes = balanceARS < 0;
 
   const isBalanced = balanceARS === 0;
 
