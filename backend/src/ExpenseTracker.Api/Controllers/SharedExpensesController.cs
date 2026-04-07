@@ -214,7 +214,8 @@ public class SharedExpensesController : ControllerBase
             .Include(se => se.MonthlyData)
             .Where(se => se.MonthlyData.UserId != userId 
                       && se.MonthlyData.Year == year 
-                      && se.MonthlyData.Month == month)
+                      && se.MonthlyData.Month == month
+                      && se.ExpenseType != SharedExpenseType.ForSpecificSystemUser)
             .ToListAsync();
 
         var dtos = expenses.Select(se => new SharedExpenseDto
